@@ -4,28 +4,28 @@
     </head>
     <body>
 	<h1>RDF Visualization Sample</h1>
-	    <h2><a href='./default1.html'> 리터널 함께 보기</a></h2>
+	    <h2><a href='./default1.html'> 1. 리터널 함께 보기</a></h2>
 	    <code>
 	    	v = Vis('http://localhost:3030/publicdata/query') 
 		nw = v.vis(limit=50, show_literal=ShowLiteral.Yes) 
 		nw.show('default1.html')
 	    </code>
 	    <p>
-	<h2><a href='./default2.html'> 리터널값을 노드 툴팁으로 보기</a></h2>
+	<h2><a href='./default2.html'> 2. 리터널값을 노드 툴팁으로 보기</a></h2>
 	    <code>
 	    	v = Vis('http://localhost:3030/publicdata/query') 
 		nw = v.vis(limit=50, show_literal=ShowLiteral.InNode)
 		nw.show('default2.html')
 	    </code>
 	<p>
-	<h2><a href='./default3.html'> 리터널 무시 </a></h2>
+	<h2><a href='./default3.html'> 3. 리터널 무시 </a></h2>
 	    <code>
 	    	v = Vis('http://localhost:3030/publicdata/query') 
 		nw = v.vis(limit=100) 
 		nw.show('default1.html')
 	    </code>
 	<p>
-	<h2><a href='./default6.html'> rdf:type 제외, '서울' 키워드 검색 </a></h2>
+	<h2><a href='./default6.html'> 4. rdf:type 제외, '서울' 키워드 검색 </a></h2>
 	    <code>
 	    	from rdflib.namespace import RDF
 
