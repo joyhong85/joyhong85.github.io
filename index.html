@@ -4,6 +4,12 @@
     </head>
     <body>
 	<h1>RDF Visualization Sample</h1>
-	<h3></h3>
+	<h2>리터널 함께 보기</h2>
+	    <pre>
+	    	v = Vis('http://localhost:3030/publicdata/query') 
+		nw = v.vis(limit=50, show_literal=ShowLiteral.Yes) 
+		nw.show('default1.html')
+	    </pre>
+	    <a href='./default1.html'> 보기 </a>
     </body>
 </html>
