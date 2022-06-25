@@ -1,0 +1,123 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.css" type="text/css" />
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis-network.min.js"> </script>
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+
+<style type="text/css">
+
+        #mynetwork {
+            width: 50%;
+            height: 600px;
+            background-color: #ffffff;
+            border: 1px solid lightgray;
+            position: relative;
+            float: left;
+        }
+
+
+
+
+        #config {
+            float: left;
+            width: 400px;
+            height: 600px;
+        }
+
+
+
+</style>
+
+</head>
+
+<body>
+<div id = "mynetwork"></div>
+
+
+<div id = "config"></div>
+
+<script type="text/javascript">
+
+    // initialize global variables.
+    var edges;
+    var nodes;
+    var network;
+    var container;
+    var options, data;
+
+
+    // This method is responsible for drawing the graph, returns the drawn network
+    function drawGraph() {
+        var container = document.getElementById('mynetwork');
+
+
+
+        // parsing and collecting nodes and edges from the python
+        nodes = new vis.DataSet([{"group": 1, "id": "http://localhost/resource/125_6", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_6\u003cbr\u003elabel:C\u003cbr\u003edegree:2\u003cbr\u003etotalNumHs:1\u003cbr\u003enumExplicitHs:0\u003cbr\u003eisotope:0\u003cbr\u003eisAromatic:true\u003cbr\u003eformalCharge:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003ehybridization:SP2\u003cbr\u003eatomicNum:6\u003cbr\u003etotalDegree:3"}, {"group": 1, "id": "http://localhost/resource/125_5", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_5\u003cbr\u003enumExplicitHs:0\u003cbr\u003etotalDegree:3\u003cbr\u003elabel:C\u003cbr\u003eisAromatic:true\u003cbr\u003eisotope:0\u003cbr\u003ehybridization:SP2\u003cbr\u003eformalCharge:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003eatomicNum:6\u003cbr\u003edegree:3\u003cbr\u003etotalNumHs:0"}, {"group": 1, "id": "http://localhost/resource/125_4", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_4\u003cbr\u003elabel:C\u003cbr\u003eisAromatic:true\u003cbr\u003eisotope:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003eformalCharge:0\u003cbr\u003ehybridization:SP2\u003cbr\u003etotalDegree:3\u003cbr\u003eatomicNum:6\u003cbr\u003etotalNumHs:1\u003cbr\u003edegree:2\u003cbr\u003enumExplicitHs:0"}, {"group": 3, "id": "http://localhost/resource/125_25", "label": "O", "shape": "dot", "title": "http://localhost/resource/125_25\u003cbr\u003eatomicNum:8\u003cbr\u003etotalDegree:2\u003cbr\u003ehybridization:SP2\u003cbr\u003eisotope:0\u003cbr\u003eformalCharge:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003elabel:O\u003cbr\u003edegree:1\u003cbr\u003enumExplicitHs:0\u003cbr\u003eisAromatic:false\u003cbr\u003etotalNumHs:1"}, {"group": 1, "id": "http://localhost/resource/125_23", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_23\u003cbr\u003eformalCharge:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003eatomicNum:6\u003cbr\u003etotalNumHs:0\u003cbr\u003edegree:3\u003cbr\u003enumExplicitHs:0\u003cbr\u003etotalDegree:3\u003cbr\u003elabel:C\u003cbr\u003eisotope:0\u003cbr\u003eisAromatic:false\u003cbr\u003ehybridization:SP2"}, {"group": 1, "id": "http://localhost/resource/125_2", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_2\u003cbr\u003edegree:3\u003cbr\u003ehybridization:SP2\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003eatomicNum:6\u003cbr\u003etotalNumHs:0\u003cbr\u003etotalDegree:3\u003cbr\u003elabel:C\u003cbr\u003enumExplicitHs:0\u003cbr\u003eisAromatic:true\u003cbr\u003eisotope:0\u003cbr\u003eformalCharge:0"}, {"group": 1, "id": "http://localhost/resource/125_7", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_7\u003cbr\u003eisAromatic:true\u003cbr\u003enumExplicitHs:0\u003cbr\u003eformalCharge:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003ehybridization:SP2\u003cbr\u003etotalDegree:3\u003cbr\u003edegree:2\u003cbr\u003eatomicNum:6\u003cbr\u003etotalNumHs:1\u003cbr\u003eisotope:0\u003cbr\u003elabel:C"}, {"group": 4, "id": "http://localhost/resource/125_8", "label": "N", "shape": "dot", "title": "http://localhost/resource/125_8\u003cbr\u003edegree:2\u003cbr\u003eisotope:0\u003cbr\u003enumExplicitHs:0\u003cbr\u003eisAromatic:false\u003cbr\u003eformalCharge:0\u003cbr\u003elabel:N\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003eatomicNum:7\u003cbr\u003ehybridization:SP2\u003cbr\u003etotalDegree:3\u003cbr\u003etotalNumHs:1"}, {"group": 1, "id": "http://localhost/resource/125_9", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_9\u003cbr\u003elabel:C\u003cbr\u003eisotope:0\u003cbr\u003eisAromatic:true\u003cbr\u003enumExplicitHs:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003eformalCharge:0\u003cbr\u003eatomicNum:6\u003cbr\u003etotalNumHs:0\u003cbr\u003edegree:3\u003cbr\u003ehybridization:SP2\u003cbr\u003etotalDegree:3"}, {"group": 1, "id": "http://localhost/resource/125_3", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_3\u003cbr\u003eatomicNum:6\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003eformalCharge:0\u003cbr\u003ehybridization:SP2\u003cbr\u003etotalDegree:3\u003cbr\u003elabel:C\u003cbr\u003etotalNumHs:1\u003cbr\u003edegree:2\u003cbr\u003eisotope:0\u003cbr\u003enumExplicitHs:0\u003cbr\u003eisAromatic:true"}, {"group": 1, "id": "http://localhost/resource/125_0", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_0\u003cbr\u003ehybridization:SP3\u003cbr\u003etotalDegree:4\u003cbr\u003eisotope:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003eformalCharge:0\u003cbr\u003etotalNumHs:3\u003cbr\u003eatomicNum:6\u003cbr\u003edegree:1\u003cbr\u003enumExplicitHs:0\u003cbr\u003elabel:C\u003cbr\u003eisAromatic:false"}, {"group": 1, "id": "http://localhost/resource/125_20", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_20\u003cbr\u003eisAromatic:true\u003cbr\u003eisotope:0\u003cbr\u003eformalCharge:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003ehybridization:SP2\u003cbr\u003eatomicNum:6\u003cbr\u003edegree:3\u003cbr\u003etotalNumHs:0\u003cbr\u003enumExplicitHs:0\u003cbr\u003etotalDegree:3\u003cbr\u003elabel:C"}, {"group": 1, "id": "http://localhost/resource/125_19", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_19\u003cbr\u003eformalCharge:0\u003cbr\u003ehybridization:SP2\u003cbr\u003etotalDegree:3\u003cbr\u003etotalNumHs:1\u003cbr\u003elabel:C\u003cbr\u003eisotope:0\u003cbr\u003edegree:2\u003cbr\u003eisAromatic:true\u003cbr\u003enumExplicitHs:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003eatomicNum:6"}, {"group": 1, "id": "http://localhost/resource/125_14", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_14\u003cbr\u003etotalNumHs:0\u003cbr\u003enumExplicitHs:0\u003cbr\u003etotalDegree:3\u003cbr\u003elabel:C\u003cbr\u003eisAromatic:true\u003cbr\u003eisotope:0\u003cbr\u003eformalCharge:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003ehybridization:SP2\u003cbr\u003eatomicNum:6\u003cbr\u003edegree:3"}, {"group": 1, "id": "http://localhost/resource/125_13", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_13\u003cbr\u003eformalCharge:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003ehybridization:SP2\u003cbr\u003eatomicNum:6\u003cbr\u003etotalDegree:3\u003cbr\u003elabel:C\u003cbr\u003edegree:2\u003cbr\u003etotalNumHs:1\u003cbr\u003eisAromatic:true\u003cbr\u003enumExplicitHs:0\u003cbr\u003eisotope:0"}, {"group": 1, "id": "http://localhost/resource/125_21", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_21\u003cbr\u003eisotope:0\u003cbr\u003ehybridization:SP2\u003cbr\u003eformalCharge:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003eatomicNum:6\u003cbr\u003etotalDegree:3\u003cbr\u003elabel:C\u003cbr\u003edegree:2\u003cbr\u003enumExplicitHs:0\u003cbr\u003etotalNumHs:1\u003cbr\u003eisAromatic:true"}, {"group": 1, "id": "http://localhost/resource/125_22", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_22\u003cbr\u003eformalCharge:0\u003cbr\u003eatomicNum:6\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003edegree:2\u003cbr\u003enumExplicitHs:0\u003cbr\u003etotalDegree:3\u003cbr\u003elabel:C\u003cbr\u003etotalNumHs:1\u003cbr\u003eisotope:0\u003cbr\u003eisAromatic:true\u003cbr\u003ehybridization:SP2"}, {"group": 3, "id": "http://localhost/resource/125_24", "label": "O", "shape": "dot", "title": "http://localhost/resource/125_24\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003ehybridization:SP2\u003cbr\u003elabel:O\u003cbr\u003eatomicNum:8\u003cbr\u003etotalNumHs:0\u003cbr\u003edegree:1\u003cbr\u003etotalDegree:1\u003cbr\u003eisAromatic:false\u003cbr\u003enumExplicitHs:0\u003cbr\u003eisotope:0\u003cbr\u003eformalCharge:0"}, {"group": 1, "id": "http://localhost/resource/125_11", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_11\u003cbr\u003eformalCharge:0\u003cbr\u003edegree:3\u003cbr\u003eatomicNum:6\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003ehybridization:SP2\u003cbr\u003etotalDegree:3\u003cbr\u003etotalNumHs:0\u003cbr\u003elabel:C\u003cbr\u003eisotope:0\u003cbr\u003eisAromatic:true\u003cbr\u003enumExplicitHs:0"}, {"group": 1, "id": "http://localhost/resource/125_18", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_18\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003eformalCharge:0\u003cbr\u003ehybridization:SP2\u003cbr\u003eatomicNum:6\u003cbr\u003edegree:2\u003cbr\u003etotalDegree:3\u003cbr\u003enumExplicitHs:0\u003cbr\u003elabel:C\u003cbr\u003etotalNumHs:1\u003cbr\u003eisAromatic:true\u003cbr\u003eisotope:0"}, {"group": 4, "id": "http://localhost/resource/125_12", "label": "N", "shape": "dot", "title": "http://localhost/resource/125_12\u003cbr\u003eisotope:0\u003cbr\u003etotalDegree:2\u003cbr\u003eformalCharge:0\u003cbr\u003eatomicNum:7\u003cbr\u003ehybridization:SP2\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003elabel:N\u003cbr\u003etotalNumHs:0\u003cbr\u003edegree:2\u003cbr\u003eisAromatic:true\u003cbr\u003enumExplicitHs:0"}, {"group": 4, "id": "http://localhost/resource/125_16", "label": "N", "shape": "dot", "title": "http://localhost/resource/125_16\u003cbr\u003ehybridization:SP2\u003cbr\u003eisotope:0\u003cbr\u003eformalCharge:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003eatomicNum:7\u003cbr\u003elabel:N\u003cbr\u003edegree:2\u003cbr\u003enumExplicitHs:0\u003cbr\u003etotalDegree:3\u003cbr\u003eisAromatic:false\u003cbr\u003etotalNumHs:1"}, {"group": 5, "id": "http://localhost/resource/125_15", "label": "Br", "shape": "dot", "title": "http://localhost/resource/125_15\u003cbr\u003elabel:Br\u003cbr\u003etotalDegree:1\u003cbr\u003enumExplicitHs:0\u003cbr\u003eisAromatic:false\u003cbr\u003ehybridization:SP3\u003cbr\u003eatomicNum:35\u003cbr\u003eisotope:0\u003cbr\u003eformalCharge:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003edegree:1\u003cbr\u003etotalNumHs:0"}, {"group": 4, "id": "http://localhost/resource/125_10", "label": "N", "shape": "dot", "title": "http://localhost/resource/125_10\u003cbr\u003eisAromatic:true\u003cbr\u003etotalDegree:2\u003cbr\u003eisotope:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003eformalCharge:0\u003cbr\u003eatomicNum:7\u003cbr\u003elabel:N\u003cbr\u003etotalNumHs:0\u003cbr\u003ehybridization:SP2\u003cbr\u003edegree:2\u003cbr\u003enumExplicitHs:0"}, {"group": 1, "id": "http://localhost/resource/125_17", "label": "C", "shape": "dot", "title": "http://localhost/resource/125_17\u003cbr\u003enumExplicitHs:0\u003cbr\u003eisotope:0\u003cbr\u003eformalCharge:0\u003cbr\u003eisAromatic:true\u003cbr\u003eatomicNum:6\u003cbr\u003edegree:3\u003cbr\u003ehybridization:SP2\u003cbr\u003etotalNumHs:0\u003cbr\u003echiralTag:CHI_UNSPECIFIED\u003cbr\u003etotalDegree:3\u003cbr\u003elabel:C"}, {"group": 3, "id": "http://localhost/resource/125_1", "label": "O", "shape": "dot", "title": "http://localhost/resource/125_1\u003cbr\u003etotalNumHs:0\u003cbr\u003eisAromatic:false\u003cbr\u003edegree:2\u003cbr\u003enumExplicitHs:0\u003cbr\u003etotalDegree:2\u003cbr\u003eisotope:0\u003cbr\u003eformalCharge:0\u003cbr\u003ehybridization:SP2\u003cbr\u003elabel:O\u003cbr\u003eatomicNum:8\u003cbr\u003echiralTag:CHI_UNSPECIFIED"}]);
+        edges = new vis.DataSet([{"from": "http://localhost/resource/125_6", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_5"}, {"from": "http://localhost/resource/125_25", "label": "single", "title": "http://test.com/ontology/single", "to": "http://localhost/resource/125_23"}, {"from": "http://localhost/resource/125_8", "label": "single", "title": "http://test.com/ontology/single", "to": "http://localhost/resource/125_9"}, {"from": "http://localhost/resource/125_2", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_7"}, {"from": "http://localhost/resource/125_19", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_18"}, {"from": "http://localhost/resource/125_14", "label": "single", "title": "http://test.com/ontology/single", "to": "http://localhost/resource/125_15"}, {"from": "http://localhost/resource/125_17", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_22"}, {"from": "http://localhost/resource/125_12", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_11"}, {"from": "http://localhost/resource/125_20", "label": "single", "title": "http://test.com/ontology/single", "to": "http://localhost/resource/125_23"}, {"from": "http://localhost/resource/125_2", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_3"}, {"from": "http://localhost/resource/125_19", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_20"}, {"from": "http://localhost/resource/125_3", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_4"}, {"from": "http://localhost/resource/125_10", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_9"}, {"from": "http://localhost/resource/125_23", "label": "double", "title": "http://test.com/ontology/double", "to": "http://localhost/resource/125_24"}, {"from": "http://localhost/resource/125_1", "label": "single", "title": "http://test.com/ontology/single", "to": "http://localhost/resource/125_2"}, {"from": "http://localhost/resource/125_17", "label": "single", "title": "http://test.com/ontology/single", "to": "http://localhost/resource/125_16"}, {"from": "http://localhost/resource/125_7", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_6"}, {"from": "http://localhost/resource/125_10", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_11"}, {"from": "http://localhost/resource/125_13", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_14"}, {"from": "http://localhost/resource/125_21", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_20"}, {"from": "http://localhost/resource/125_8", "label": "single", "title": "http://test.com/ontology/single", "to": "http://localhost/resource/125_5"}, {"from": "http://localhost/resource/125_14", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_9"}, {"from": "http://localhost/resource/125_4", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_5"}, {"from": "http://localhost/resource/125_13", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_12"}, {"from": "http://localhost/resource/125_21", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_22"}, {"from": "http://localhost/resource/125_18", "label": "aromatic", "title": "http://test.com/ontology/aromatic", "to": "http://localhost/resource/125_17"}, {"from": "http://localhost/resource/125_16", "label": "single", "title": "http://test.com/ontology/single", "to": "http://localhost/resource/125_11"}, {"from": "http://localhost/resource/125_0", "label": "single", "title": "http://test.com/ontology/single", "to": "http://localhost/resource/125_1"}]);
+
+        // adding nodes and edges to the graph
+        data = {nodes: nodes, edges: edges};
+
+        var options = {
+    "configure": {
+        "enabled": true,
+        "filter": [
+            "physics"
+        ]
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+
+
+
+        // if this network requires displaying the configure window,
+        // put it in its div
+        options.configure["container"] = document.getElementById("config");
+
+
+        network = new vis.Network(container, data, options);
+
+
+
+
+
+
+        return network;
+
+    }
+
+    drawGraph();
+
+</script>
+</body>
+</html>
