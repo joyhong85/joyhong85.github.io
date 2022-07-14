@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>네트워크 레이아웃 비교</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<style type="text/css">
+#wrap{
+  width:100%;
+  height:100%;
+  margin:0px auto; /*가운데 정렬*/
+  font-size:20px;
+  text-align: center;
+}
+#header{
+  width:100%;
+  height:50px;
+  background-color: grey;
+  line-height: 50px;/*글자나 이미지 위치 정렬*/
+}
+#aside {
+   width:80%;
+   height:800px;
+   background-color: white;
+   line-height: 800px;
+   float: left;
+}
+#section{
+   width:20%;
+   height:800px;
+   /* background-color: green; */
+   /* line-height: 800px; */
+   float: left;
+}
+#footer{
+   width:100%;
+   height:30px;
+   background-color: black;
+   line-height: 30px;/*글자나 이미지 위치 정렬*/
+   color:white;
+   float: left;
+}
+.cateBtn{
+      width: 100px;
+      height: 70px;
+      /* margin: 10px; */
+      font-size:14px;
+      text-align: center;
+      display: inline-grid;
+      margin: 16px auto;
+      justify-content: center;
+	    /* align-items: center; */
+}
+button.on {
+    color: white;
+    background-color: red;
+}
+</style>
+<script type="text/javascript">
+  $(function (){
+  	$("#default").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality_default.html";
+    });
+    $("#edge_weight").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/edge_weight.html";
+    });
+    $("#degree").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality_degree.html";
+    });
+    $("#weighted_degree").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality_weighted_degree.html";
+    });
+    $("#betweenness").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality_betweenness.html";
+    });
+    $("#edge_betweenness").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality_edge_betweenness.html";
+    });
+    $("#closeness").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality_closeness.html";
+    });
+    $("#eigenvector").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality_eigenvector.html";
+    });
+    $("#weighted_eigenvector").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality_weighted_eigenvector.html";
+    });
+    $("#harmonic").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality_harmonic.html";
+    });
+    $("#katz").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality_katz.html";
+    });
+    $("#pagerank").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality_pagerank.html";
+    });
+});
+</script>
+</head>
+  <div id="wrap">
+    <div id="header">Networkx 레이아웃 비교</div>
+    <div id="aside">
+      <iframe id="iframeDisplay" src="about:blank"
+      width="100%" height="100%" style="background:#ffffff"></iframe>
+    </div>
+    <div id="section">
+      Select layout
+      <div id="cateBtn">
+          <button class="cateBtn" id="default" value="Default">Default</button>
+          <button class="cateBtn" id="edge_weight" value="edge weight">edge weight</button>
+          <button class="cateBtn" id="degree" value="degree">degree</button>
+          <button class="cateBtn" id="weighted_degree" value="weighted_degree">weighted degree</button>
+          <button class="cateBtn" id="betweenness" value="betweenness">betweenness</button>
+          <button class="cateBtn" id="edge_betweenness" value="edge_betweenness">edge betweenness</button>
+          <button class="cateBtn" id="closeness" value="closeness">closeness</button>
+          <button class="cateBtn" id="harmonic" value="harmonic">harmonic</button>
+          <button class="cateBtn" id="eigenvector" value="eigenvector">eigenvector</button>
+          <button class="cateBtn" id="weighted_eigenvector" value="weighted_eigenvector">weighted eigenvector</button>
+          <button class="cateBtn" id="katz" value="katz">katz</button>
+          <button class="cateBtn" id="pagerank" value="pagerank">pagerank</button>
+      </div>
+      <div id="legend">
+         ~ 24%  : grey <p>
+        25~49% : yellow <p>
+        50~74% : skyblue<p>
+        75% ~  : orange<p>
+      </div>
+    </div>
+    <div id="footer">joyhong (http://joyhong.tistory.com) </div>
+  </div>
+
+</body>
+</html>
