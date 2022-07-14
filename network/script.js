@@ -1,4 +1,4 @@
-<script type="text/javascript">
+
   $(function (){
   	$("#default").click(function (){
       $("button.cateBtn").removeClass("on");
@@ -61,4 +61,4 @@
       document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality_pagerank.html";
     });
 });
-</script>
+
