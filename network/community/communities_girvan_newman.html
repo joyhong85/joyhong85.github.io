@@ -1,0 +1,108 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vis-network@latest/styles/vis-network.css" type="text/css" />
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vis-network@latest/dist/vis-network.min.js"> </script>
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+
+<style type="text/css">
+
+        #mynetwork {
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            border: 1px solid lightgray;
+            position: relative;
+            float: left;
+        }
+
+        
+
+        
+
+        
+</style>
+
+</head>
+
+<body>
+<div id = "mynetwork"></div>
+
+
+<script type="text/javascript">
+
+    // initialize global variables.
+    var edges;
+    var nodes;
+    var network; 
+    var container;
+    var options, data;
+
+    
+    // This method is responsible for drawing the graph, returns the drawn network
+    function drawGraph() {
+        var container = document.getElementById('mynetwork');
+        
+        
+
+        // parsing and collecting nodes and edges from the python
+        nodes = new vis.DataSet([{"group": 0, "id": 15, "label": "Classical Analysis and ODEs", "shape": "dot", "size": 10, "title": "Classical Analysis and ODEs"}, {"group": 0, "id": 18, "label": "Analysis of PDEs", "shape": "dot", "size": 10, "title": "Analysis of PDEs"}, {"group": 0, "id": 0, "label": "Functional Analysis", "shape": "dot", "size": 10, "title": "Functional Analysis"}, {"group": 0, "id": 19, "label": "Differential Geometry", "shape": "dot", "size": 10, "title": "Differential Geometry"}, {"group": 0, "id": 3, "label": "Mathematical Physics", "shape": "dot", "size": 10, "title": "Mathematical Physics"}, {"group": 0, "id": 33, "label": "Complex Variables", "shape": "dot", "size": 10, "title": "Complex Variables"}, {"group": 2, "id": 7, "label": "Dynamical Systems", "shape": "dot", "size": 10, "title": "Dynamical Systems"}, {"group": 0, "id": 30, "label": "Spectral Theory", "shape": "dot", "size": 10, "title": "Spectral Theory"}, {"group": 4, "id": 16, "label": "Algebraic Geometry", "shape": "dot", "size": 10, "title": "Algebraic Geometry"}, {"group": 1, "id": 24, "label": "Algebraic Topology", "shape": "dot", "size": 10, "title": "Algebraic Topology"}, {"group": 1, "id": 28, "label": "Group Theory", "shape": "dot", "size": 10, "title": "Group Theory"}, {"group": 1, "id": 25, "label": "Combinatorics", "shape": "dot", "size": 10, "title": "Combinatorics"}, {"group": 1, "id": 31, "label": "Geometric Topology", "shape": "dot", "size": 10, "title": "Geometric Topology"}, {"group": 5, "id": 22, "label": "Discrete Mathematics", "shape": "dot", "size": 10, "title": "Discrete Mathematics"}, {"group": 0, "id": 17, "label": "Probability", "shape": "dot", "size": 10, "title": "Probability"}, {"group": 1, "id": 8, "label": "Distributed, Parallel, and Cluster Computing", "shape": "dot", "size": 10, "title": "Distributed, Parallel, and Cluster Computing"}, {"group": 1, "id": 2, "label": "Computational Geometry", "shape": "dot", "size": 10, "title": "Computational Geometry"}, {"group": 2, "id": 13, "label": "Number Theory", "shape": "dot", "size": 10, "title": "Number Theory"}, {"group": 2, "id": 20, "label": "Numerical Analysis", "shape": "dot", "size": 10, "title": "Numerical Analysis"}, {"group": 2, "id": 32, "label": "Optimization and Control", "shape": "dot", "size": 10, "title": "Optimization and Control"}, {"group": 3, "id": 10, "label": "Image and Video Processing", "shape": "dot", "size": 10, "title": "Image and Video Processing"}, {"group": 3, "id": 12, "label": "Computer Vision and Pattern Recognition", "shape": "dot", "size": 10, "title": "Computer Vision and Pattern Recognition"}, {"group": 4, "id": 4, "label": "K-Theory and Homology", "shape": "dot", "size": 10, "title": "K-Theory and Homology"}, {"group": 2, "id": 6, "label": "Machine Learning", "shape": "dot", "size": 10, "title": "Machine Learning"}, {"group": 2, "id": 29, "label": "Signal Processing", "shape": "dot", "size": 10, "title": "Signal Processing"}, {"group": 2, "id": 36, "label": "Systems and Control", "shape": "dot", "size": 10, "title": "Systems and Control"}, {"group": 1, "id": 23, "label": "Logic", "shape": "dot", "size": 10, "title": "Logic"}, {"group": 1, "id": 34, "label": "Logic in Computer Science", "shape": "dot", "size": 10, "title": "Logic in Computer Science"}, {"group": 2, "id": 11, "label": "Computational Engineering, Finance, and Science", "shape": "dot", "size": 10, "title": "Computational Engineering, Finance, and Science"}, {"group": 0, "id": 21, "label": "Quantum Algebra", "shape": "dot", "size": 10, "title": "Quantum Algebra"}, {"group": 0, "id": 5, "label": "Operator Algebras", "shape": "dot", "size": 10, "title": "Operator Algebras"}, {"group": 2, "id": 1, "label": "Computational Physics", "shape": "dot", "size": 10, "title": "Computational Physics"}, {"group": 5, "id": 26, "label": "Data Structures and Algorithms", "shape": "dot", "size": 10, "title": "Data Structures and Algorithms"}, {"group": 1, "id": 27, "label": "General Topology", "shape": "dot", "size": 10, "title": "General Topology"}, {"group": 6, "id": 14, "label": "Statistics Theory", "shape": "dot", "size": 10, "title": "Statistics Theory"}, {"group": 6, "id": 9, "label": "Methodology", "shape": "dot", "size": 10, "title": "Methodology"}, {"group": 1, "id": 35, "label": "Information Theory", "shape": "dot", "size": 10, "title": "Information Theory"}]);
+        edges = new vis.DataSet([{"from": 15, "label": 5, "to": 18, "weight": 5}, {"from": 15, "label": 6, "to": 0, "weight": 6}, {"from": 18, "label": 4, "to": 19, "weight": 4}, {"from": 18, "label": 3, "to": 0, "weight": 3}, {"from": 18, "label": 3, "to": 3, "weight": 3}, {"from": 0, "label": 2, "to": 33, "weight": 2}, {"from": 0, "label": 2, "to": 7, "weight": 2}, {"from": 0, "label": 2, "to": 30, "weight": 2}, {"from": 33, "label": 2, "to": 7, "weight": 2}, {"from": 33, "label": 2, "to": 16, "weight": 2}, {"from": 24, "label": 3, "to": 28, "weight": 3}, {"from": 28, "label": 2, "to": 25, "weight": 2}, {"from": 31, "label": 2, "to": 25, "weight": 2}, {"from": 31, "label": 2, "to": 7, "weight": 2}, {"from": 25, "label": 2, "to": 22, "weight": 2}, {"from": 25, "label": 9, "to": 17, "weight": 9}, {"from": 25, "label": 2, "to": 8, "weight": 2}, {"from": 25, "label": 2, "to": 15, "weight": 2}, {"from": 25, "label": 3, "to": 16, "weight": 3}, {"from": 2, "label": 2, "to": 24, "weight": 2}, {"from": 2, "label": 2, "to": 25, "weight": 2}, {"from": 7, "label": 3, "to": 13, "weight": 3}, {"from": 7, "label": 2, "to": 20, "weight": 2}, {"from": 7, "label": 4, "to": 32, "weight": 4}, {"from": 10, "label": 3, "to": 12, "weight": 3}, {"from": 13, "label": 4, "to": 25, "weight": 4}, {"from": 13, "label": 8, "to": 16, "weight": 8}, {"from": 4, "label": 3, "to": 16, "weight": 3}, {"from": 16, "label": 3, "to": 3, "weight": 3}, {"from": 6, "label": 2, "to": 17, "weight": 2}, {"from": 6, "label": 2, "to": 0, "weight": 2}, {"from": 6, "label": 2, "to": 29, "weight": 2}, {"from": 17, "label": 2, "to": 18, "weight": 2}, {"from": 17, "label": 6, "to": 3, "weight": 6}, {"from": 17, "label": 3, "to": 0, "weight": 3}, {"from": 17, "label": 2, "to": 15, "weight": 2}, {"from": 32, "label": 2, "to": 22, "weight": 2}, {"from": 32, "label": 4, "to": 18, "weight": 4}, {"from": 32, "label": 6, "to": 6, "weight": 6}, {"from": 32, "label": 10, "to": 36, "weight": 10}, {"from": 23, "label": 2, "to": 28, "weight": 2}, {"from": 23, "label": 2, "to": 34, "weight": 2}, {"from": 23, "label": 2, "to": 25, "weight": 2}, {"from": 20, "label": 2, "to": 11, "weight": 2}, {"from": 20, "label": 2, "to": 32, "weight": 2}, {"from": 20, "label": 4, "to": 6, "weight": 4}, {"from": 21, "label": 2, "to": 3, "weight": 2}, {"from": 3, "label": 2, "to": 30, "weight": 2}, {"from": 3, "label": 2, "to": 19, "weight": 2}, {"from": 19, "label": 2, "to": 33, "weight": 2}, {"from": 5, "label": 2, "to": 0, "weight": 2}, {"from": 1, "label": 2, "to": 20, "weight": 2}, {"from": 26, "label": 3, "to": 22, "weight": 3}, {"from": 27, "label": 2, "to": 25, "weight": 2}, {"from": 14, "label": 7, "to": 9, "weight": 7}, {"from": 35, "label": 2, "to": 25, "weight": 2}]);
+
+        // adding nodes and edges to the graph
+        data = {nodes: nodes, edges: edges};
+
+        var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+        
+        
+
+        
+
+        network = new vis.Network(container, data, options);
+	 
+        
+
+
+        
+
+        return network;
+
+    }
+
+    drawGraph();
+
+</script>
+</body>
+</html>
