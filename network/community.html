@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Centrality</title>
+<script src="jquery.min.js"></script>
+<style type="text/css">
+#wrap{
+  width:100%;
+  height:100%;
+  margin:0px auto; /*가운데 정렬*/
+  font-size:20px;
+  text-align: center;
+}
+#header{
+  width:100%;
+  height:50px;
+  background-color: grey;
+  line-height: 50px;/*글자나 이미지 위치 정렬*/
+}
+#aside {
+   width:80%;
+   height:800px;
+   background-color: white;
+   line-height: 800px;
+   float: left;
+}
+#section{
+   width:20%;
+   height:800px;
+   /* background-color: green; */
+   /* line-height: 800px; */
+   float: left;
+}
+#footer{
+   width:100%;
+   height:30px;
+   background-color: black;
+   line-height: 30px;/*글자나 이미지 위치 정렬*/
+   color:white;
+   float: left;
+}
+.cateBtn{
+      width: 100px;
+      height: 70px;
+      /* margin: 10px; */
+      font-size:14px;
+      text-align: center;
+      display: inline-grid;
+      margin: 10px auto;
+      justify-content: center;
+	    /* align-items: center; */
+}
+button.on {
+    color: white;
+    background-color: red;
+}
+#legend{
+	font-size:10px;
+}
+</style>
+<script src="script.js" type="text/JavaScript" defer></script>
+</head>
+  <div id="wrap">
+    <div id="header">Networkx Community Algorithms Comparison</div>
+    <div id="aside">
+      <iframe id="iframeDisplay" src="about:blank"
+      width="100%" height="100%" style="background:#ffffff"></iframe>
+    </div>
+    <div id="section">
+      Click button under
+      <div id="cateBtn">
+          <button class="cateBtn" id="triangle" value="triangle">triangle</button>
+          <button class="cateBtn" id="girvan_newman" value="girvan_newman">girvan_newman</button>
+          <button class="cateBtn" id="asyn_fluidc" value="asyn_fluidc">asyn_fluidc</button>
+          <button class="cateBtn" id="louvain" value="louvain">louvain</button>
+          <button class="cateBtn" id="kernighan_lin" value="kernighan_lin">kernighan_lin</button>
+          <button class="cateBtn" id="k_clique" value="k_clique">k_clique</button>
+          <button class="cateBtn" id="greedy_modularity" value="greedy_modularity">greedy <br>modularity</button>
+          <button class="cateBtn" id="asyn_lpa" value="asyn_lpa">asyn_lpa</button>
+          <button class="cateBtn" id="label_propagation" value="label_propagation">label <br>propagation</button>
+      </div>
+      <div id="legend">
+
+      </div>
+    </div>
+    <div id="footer">joyhong (http://joyhong.tistory.com) </div>
+  </div>
+
+</body>
+</html>

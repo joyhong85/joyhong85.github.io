@@ -60,5 +60,49 @@
       $(this).addClass("on");
       document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality/centrality_pagerank.html";
     });
+    $("#triangle").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/clustering_view_triangle.html";
+    });
+  	$("#girvan_newman").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/communities_girvan_newman.html";
+    });
+    $("#asyn_fluidc").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/communities_asyn_fluidc.html";
+    });
+    $("#louvain").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/communities_louvain_communities.html";
+    });
+    $("#kernighan_lin").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/communities_kernighan_lin_bisection.html";
+    });
+    $("#k_clique").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/communities_k_clique.html";
+    });
+    $("#greedy_modularity").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/communities_greedy_modularity.html";
+    });
+    $("#asyn_lpa").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/communities_asyn_lpa_communities.html";
+    });
+    $("#label_propagation").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/communities_label_propagation.html";
+    });
 });
-
