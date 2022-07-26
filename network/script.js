@@ -60,10 +60,15 @@
       $(this).addClass("on");
       document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality/centrality_pagerank.html";
     });
-    $("#triangle").click(function (){
+    $("#triangles").click(function (){
       $("button.cateBtn").removeClass("on");
       $(this).addClass("on");
       document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/clustering_view_triangle.html";
+    });
+    $("#clustering").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/clustering.html";
     });
   	$("#girvan_newman").click(function (){
       $("button.cateBtn").removeClass("on");
