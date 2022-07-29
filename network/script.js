@@ -70,6 +70,21 @@
       $(this).addClass("on");
       document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/centrality/clustering.html";
     });
+    $("#connected_components").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/connected_components.html";
+    });
+    $("#strong_connected").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/communities_strong_connected.html";
+    });
+    $("#weak_connected").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/communities_weak_connected.html";
+    });
   	$("#girvan_newman").click(function (){
       $("button.cateBtn").removeClass("on");
       $(this).addClass("on");
@@ -94,6 +109,21 @@
       $("button.cateBtn").removeClass("on");
       $(this).addClass("on");
       document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/communities_k_clique.html";
+    });
+    $("#k_clique_max").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/communities_k_clique_max.html";
+    });
+    $("#clique_max").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/communities_clique_max.html";
+    });
+    $("#k_core").click(function (){
+      $("button.cateBtn").removeClass("on");
+      $(this).addClass("on");
+      document.getElementById("iframeDisplay").src = "https://joyhong85.github.io/network/community/communities_k_core.html";
     });
     $("#greedy_modularity").click(function (){
       $("button.cateBtn").removeClass("on");
