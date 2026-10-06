@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stardog Designer 시뮬레이터: MOVA 온톨로지 만들기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+  --ink:#1C1F26; --ink-2:#4A5160; --muted:#8A919E; --line:#E3E6EB; --line-2:#D3D8E0;
+  --panel:#FFFFFF; --canvas:#EEF1F6; --grid:#DDE2EA; --field:#E8E9EB; --field-2:#F3F4F6;
+  --green:#8BE36B; --green-ink:#1E3B12; --green-2:#71CF4F;
+  --blue:#2C6BD3; --blue-soft:#D6E4FA; --red:#E04848; --red-soft:#F7C9C3;
+  --dark:#1F242E;
+  --guide:#151A24; --guide-2:#232A38; --guide-ink:#EDF1F7; --guide-muted:#9AA4B6; --guide-accent:#8BE36B;
+  --sans:"Inter","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;height:100%;font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--panel);overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+input,textarea,select{font:inherit;color:inherit}
+svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+#app{display:flex;flex-direction:column;height:100%}
+#top{height:50px;flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 14px;border-bottom:1px solid var(--line);background:var(--panel);position:relative;z-index:30}
+#top .left,#top .right{display:flex;align-items:center;gap:10px}
+#top .right{justify-content:flex-end}
+.iconbtn{display:inline-grid;place-items:center;width:30px;height:30px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer;color:var(--ink-2)}
+.iconbtn:hover{background:var(--field-2)}
+.iconbtn.round{border-radius:50%}
+#projName{font-weight:600;font-size:14px;padding:4px 6px;border-radius:6px;cursor:text;border:1px solid transparent;background:none}
+#projName:hover{border-color:var(--line)}
+#saveState{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:11.5px}
+#saveState .spin{width:12px;height:12px;border:1.6px solid var(--muted);border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tabs-top{display:flex;gap:4px;height:50px}
+.tabs-top button{display:flex;align-items:center;gap:7px;padding:0 14px;border:0;background:none;cursor:pointer;color:var(--ink-2);border-bottom:2px solid transparent;font-size:13px}
+.tabs-top button.on{color:var(--ink);border-bottom-color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;border:1px solid transparent;background:var(--field);cursor:pointer;font-weight:500;font-size:12.5px;white-space:nowrap}
+.btn:hover{filter:brightness(.97)}
+.btn.green{background:var(--green);color:var(--green-ink);font-weight:600}
+.btn.green.soft{background:#C9F0B8;color:#5E8A4B}
+.btn.ghost{background:transparent;border-color:var(--line)}
+.btn.plain{background:transparent}
+.btn.red{background:transparent;color:var(--red);border-color:var(--line)}
+.btn.dark{background:var(--dark);color:#fff}
+.btn[disabled]{opacity:.5;cursor:default}
+.btn .spin{width:12px;height:12px;border:1.6px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+
+#main{flex:1;min-height:0;display:flex;position:relative}
+#side{width:250px;flex:none;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;position:relative;z-index:5}
+#side .search{margin:12px 12px 6px;display:flex;align-items:center;gap:7px;border:1px solid var(--line-2);border-radius:7px;padding:0 9px;height:32px;color:var(--muted)}
+#side .search input{border:0;outline:0;flex:1;min-width:0;background:none;font-size:12.5px}
+.sec{border-bottom:1px solid var(--line)}
+.sec-h{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;user-select:none}
+.sec-h .chev{width:18px;height:18px;border:1px solid var(--line-2);border-radius:50%;display:grid;place-items:center;color:var(--ink-2);transition:transform .15s}
+.sec.closed .chev{transform:rotate(-90deg)}
+.sec-h b{font-weight:500;font-size:13px}
+.sec-h .cnt{font-size:11px;color:var(--muted);background:var(--field-2);border-radius:4px;padding:0 5px}
+.sec-h .add{margin-left:auto}
+.sec-b{padding:0 10px 10px}
+.sec.closed .sec-b{display:none}
+.item{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:6px;background:var(--field-2);margin-bottom:5px;font-size:12px;cursor:pointer}
+.item:hover{background:var(--field)}
+.item .x{margin-left:auto;opacity:0;border:0;background:none;cursor:pointer;color:var(--muted)}
+.item:hover .x{opacity:1}
+.qinput{display:flex;gap:6px;margin-bottom:6px}
+.qinput input{flex:1;min-width:0;height:30px;border:1px solid var(--line-2);border-radius:6px;padding:0 8px;font-size:12px}
+.tree{padding:0 6px}
+.tree .t{display:flex;align-items:center;gap:6px;padding:6px 6px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--ink-2)}
+.tree .t:hover{background:var(--field-2)}
+.tree .t.on{background:var(--field);color:var(--ink);font-weight:500}
+.tree .t.l1{padding-left:22px}.tree .t.l2{padding-left:38px}
+.side-fill{flex:1}
+.side-empty{color:var(--muted);font-size:12px;padding:4px 4px 10px}
+
+/* voicebox */
+#voice{position:absolute;inset:0;background:#FAFBFB;display:none;flex-direction:column;z-index:6;border-right:1px solid var(--line)}
+#voice.on{display:flex}
+#voice .vh{display:flex;align-items:center;justify-content:space-between;padding:12px 12px 10px}
+.vlogo{letter-spacing:.14em;font-size:15px;color:#7B828F;font-weight:500}
+.vsum{display:flex;align-items:center;gap:8px;padding:9px 12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--panel)}
+.vsum b{font-weight:500}
+.vsum .badge{margin-left:auto;display:flex;align-items:center;gap:4px;background:#FCE3E1;color:var(--red);border-radius:5px;padding:1px 6px;font-size:11px}
+.vsum .badge i{width:8px;height:8px;border-radius:50%;background:var(--red);display:block}
+.vlog{flex:1;overflow:auto;padding:12px 12px 6px}
+.vintro{color:#A3A9B3;font-size:12.5px;line-height:1.6;margin:30px 4px 10px;font-family:Georgia,serif}
+.vmsg{display:flex;gap:9px;align-items:flex-start;margin:14px 0;font-size:12px;color:var(--ink-2);line-height:1.5}
+.vmsg .av{width:22px;height:22px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;flex:none;font-size:10px}
+.vmsg.me{justify-content:flex-end}
+.vmsg.me span{background:var(--dark);color:#fff;border-radius:10px;padding:6px 10px;max-width:85%}
+.vsep{text-align:center;margin:12px 0;position:relative}
+.vsep span{position:relative;background:#FAFBFB;padding:2px 8px;font-size:11px;font-weight:600;border:1px solid var(--line);border-radius:5px}
+.vsep::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:1px solid var(--line)}
+.vin{padding:8px 12px 12px}
+.vchips{display:flex;gap:6px;margin-bottom:7px}
+.vchips button{background:#3B4250;color:#fff;border:0;border-radius:6px;font-size:11px;padding:3px 8px;cursor:pointer;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.vbox textarea{border:0;outline:0;resize:none;height:44px;font-size:12.5px}
+.vbox .send{align-self:flex-end;width:32px;height:32px;border-radius:50%;border:0;background:var(--green);display:grid;place-items:center;cursor:pointer}
+
+/* canvas */
+#center{flex:1;min-width:0;position:relative;display:flex;flex-direction:column}
+#canvasWrap{flex:1;position:relative;overflow:hidden;background-color:var(--canvas);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px}
+#svg{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab;user-select:none}
+#svg.panning{cursor:grabbing}
+.ctool{position:absolute;top:10px;left:10px;right:10px;display:flex;align-items:flex-start;gap:12px;pointer-events:none;z-index:4}
+.ctool>*{pointer-events:auto}
+.modelpick{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:8px;height:36px;padding:0 6px 0 8px;min-width:200px}
+.modelpick .lab{color:var(--muted)}
+.modelpick b{font-weight:500;margin-right:auto}
+.tb{display:flex;align-items:center;gap:2px;height:36px}
+.tb button{width:30px;height:30px;border:0;border-radius:7px;background:none;cursor:pointer;display:grid;place-items:center;color:var(--ink-2);position:relative}
+.tb button:hover{background:rgba(0,0,0,.06)}
+.tb button[disabled]{opacity:.35;cursor:default;background:none}
+.tb button.on{background:var(--blue-soft);color:var(--blue)}
+.tip{position:absolute;top:-30px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.08);border-radius:5px;padding:3px 7px;font-size:11px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .12s;color:var(--ink)}
+.tb button:hover .tip,.tb button.showtip .tip{opacity:1}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:6px}
+.tb-right .rules{display:flex;align-items:center;gap:5px;border:0;background:none;cursor:pointer;font-weight:500;font-size:12px;height:30px;padding:0 6px;border-radius:6px}
+.tb-right .rules:hover{background:rgba(0,0,0,.06)}
+.seg{display:flex;border:1px solid var(--line);border-radius:7px;background:var(--panel);overflow:hidden}
+.seg button{width:30px;height:28px;border:0;background:none;display:grid;place-items:center;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--field);color:var(--ink)}
+.csearch{height:30px;border:1px solid var(--line-2);border-radius:7px;padding:0 9px;width:170px;background:#fff;display:none}
+.csearch.on{display:block}
+.legend{position:absolute;top:52px;left:10px;display:none;flex-direction:column;gap:5px;z-index:4}
+.legend.on{display:flex}
+.legend span{font-size:11px;border-radius:999px;padding:2px 9px;width:max-content;border:1.5px solid}
+.legend .c{background:var(--blue-soft);border-color:#7EA5E6;color:#24508F}
+.legend .d{background:#F49B8D;border-color:#E06C5A;color:#7A2418}
+#vbtn{position:absolute;left:14px;bottom:14px;width:40px;height:40px;border-radius:50%;background:var(--green);border:0;display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 10px rgba(80,160,60,.35);z-index:4}
+#vbtn .n{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:10px;border-radius:999px;min-width:16px;height:16px;display:grid;place-items:center;padding:0 4px}
+.empty-hint{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;color:#9AA2AF;font-size:13px;text-align:center;line-height:1.7}
+
+/* svg graph */
+.node{cursor:pointer}
+.node circle.b{stroke:#555B66;stroke-width:2.2}
+.node.sel circle.b{stroke:#1C1F26;stroke-width:3.2}
+.node text.n{font-weight:600;font-size:13px;fill:#1C1F26;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.node.dim{opacity:.25}
+.node .badge rect{fill:#fff;stroke:#C9CED6}
+.node .badge text{font-size:11px;font-weight:600;text-anchor:middle;dominant-baseline:central;fill:#1C1F26}
+.edge path.l{fill:none;stroke:#5B616C;stroke-width:1.6}
+.edge.sel path.l{stroke:#1C1F26;stroke-width:3}
+.edge path.hit{fill:none;stroke:transparent;stroke-width:14;cursor:pointer}
+.edge text{font-size:12.5px;font-weight:600;fill:#3A404B;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:var(--canvas);stroke-width:5px;stroke-linejoin:round;pointer-events:none}
+.edge.sel text{fill:#1C1F26}
+.edge.sub path.l{stroke-dasharray:3 4}
+.mapedge path{fill:none;stroke:#2C2F36;stroke-width:2;stroke-dasharray:8 6}
+.mapedge text{font-size:12px;font-weight:600;fill:#2C2F36;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:var(--canvas);stroke-width:5px}
+.mapedge.pending path{stroke:#4D8EE8}
+.mapedge.pending rect{fill:var(--blue-soft);stroke:#7EA5E6}
+.mapedge.pending text{stroke:none;fill:#24508F;font-weight:500}
+.res{cursor:pointer}
+.res path.f{fill:#fff;stroke:#1C1F26;stroke-width:2.4;stroke-linejoin:round}
+.res text{font-size:11.5px;font-weight:600;text-anchor:middle;fill:#1C1F26}
+.res.sel path.f{fill:#E6EEFB}
+.res.dim{opacity:.25}
+.drop-ghost{fill:none;stroke:#2C6BD3;stroke-width:2;stroke-dasharray:5 4}
+
+/* context menu */
+.ctx{position:fixed;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:4px;min-width:150px;z-index:60;font-size:12.5px}
+.ctx .tag{position:absolute;left:-2px;top:-26px;background:#fff;border:1px solid var(--line);border-radius:5px;padding:2px 8px;font-size:11px;white-space:nowrap}
+.ctx button{display:block;width:100%;text-align:left;border:0;background:none;padding:7px 10px;border-radius:5px;cursor:pointer}
+.ctx button:hover{background:var(--field-2)}
+.ctx .hd{padding:5px 10px;color:var(--muted);font-size:11px}
+.ctx button.danger{color:var(--red)}
+
+/* drawer */
+#dim{position:absolute;inset:0;background:rgba(40,42,48,.55);z-index:20;display:none}
+#dim.on{display:block}
+#drawer{position:absolute;top:0;right:0;bottom:0;width:min(470px,100%);background:#fff;box-shadow:-10px 0 30px rgba(0,0,0,.12);z-index:25;display:none;flex-direction:column}
+#drawer.on{display:flex}
+#drawer.float{top:12px;right:12px;bottom:12px;border-radius:12px}
+.dr-h{display:flex;align-items:center;gap:10px;padding:14px 16px 12px}
+.dr-h h3{margin:0;font-size:15px;font-weight:500;flex:1}
+.dr-h .x,.mod-h .x{border:0;background:none;cursor:pointer;font-size:18px;line-height:1;color:var(--ink-2);width:26px;height:26px;border-radius:6px}
+.dr-h .x:hover{background:var(--field-2)}
+.dtabs{display:flex;gap:16px;padding:0 16px;border-bottom:1px solid var(--line)}
+.dtabs button{border:0;background:none;padding:6px 0 8px;cursor:pointer;font-size:12.5px;color:var(--ink-2);border-bottom:2px solid transparent}
+.dtabs button.on{color:var(--blue);border-bottom-color:var(--blue)}
+.dr-b{flex:1;overflow:auto;padding:14px 16px}
+.dr-f{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid var(--line)}
+.dr-f .sp{flex:1}
+.fl{display:block;font-size:12px;color:var(--ink-2);margin:0 0 5px}
+.fl+.fi{margin-bottom:0}
+.frow{display:flex;align-items:center;gap:10px;margin-bottom:14px;position:relative}
+.fi{width:100%;height:34px;border:1px solid transparent;background:var(--field);border-radius:5px;padding:0 10px;outline:0;margin-bottom:14px}
+.fi:focus{border-color:#7EA5E6;background:#fff;box-shadow:0 0 0 3px rgba(44,107,211,.12)}
+textarea.fi{height:64px;padding:8px 10px;resize:vertical}
+.frow .fi{margin-bottom:0}
+.cdot{width:14px;height:14px;border-radius:50%;flex:none;cursor:pointer;border:2px solid #fff;box-shadow:0 0 0 1px var(--line-2)}
+.err{position:absolute;right:30px;top:38px;background:#fff;border:1px solid var(--line);box-shadow:0 4px 12px rgba(0,0,0,.1);border-radius:5px;padding:4px 8px;font-size:11px;color:var(--red);z-index:3}
+.note{background:var(--field-2);border-radius:7px;padding:10px 12px;color:var(--ink-2);font-size:12px;line-height:1.6}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chiplist{margin:6px 0 0;padding:0;list-style:none}
+.chiplist li{display:flex;justify-content:space-between;align-items:center;padding:4px 4px;font-size:12px;max-width:190px}
+.chiplist li button{border:0;background:none;cursor:pointer;color:var(--ink-2)}
+table.tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:14px}
+table.tbl th{text-align:left;font-weight:600;padding:7px 8px;border:1px solid var(--line);background:#FAFAFB}
+table.tbl td{padding:7px 8px;border:1px solid var(--line)}
+table.tbl td .lnk{color:var(--blue);cursor:pointer}
+.attrhead{display:grid;grid-template-columns:1.3fr 1fr .8fr 40px;gap:8px;align-items:center;font-size:12px;font-weight:600;padding:7px 8px;border:1px solid var(--line);background:#FAFAFB}
+.attrrow{display:grid;grid-template-columns:1.3fr 1fr .8fr 40px;gap:8px;align-items:center;font-size:12px;padding:7px 8px;border:1px solid var(--line);border-top:0}
+.attrrow .nm{color:var(--blue)}
+.attrrow select{height:26px;border:1px solid var(--line);border-radius:5px;background:#fff;font-size:11.5px;max-width:100%}
+.attrrow .del{border:0;background:none;color:var(--muted);cursor:pointer;justify-self:end}
+.attradd{display:grid;grid-template-columns:1.3fr 1fr .8fr 40px;gap:8px;align-items:center;padding:7px 8px;border:1px solid var(--line);border-top:0}
+.addlink{border:0;background:none;color:var(--muted);cursor:pointer;font-size:12px;justify-self:end}
+.addlink.on{color:var(--ink);font-weight:600}
+
+/* combobox */
+.combo{position:relative;width:100%}
+.combo-btn{width:100%;height:30px;display:flex;align-items:center;justify-content:space-between;gap:6px;border:1px solid transparent;background:var(--field);border-radius:5px;padding:0 9px;cursor:pointer;text-align:left;font-size:12px}
+.combo-btn .ph{color:var(--muted)}
+.combo-btn .v{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.combo-pop{position:absolute;left:0;top:calc(100% + 3px);min-width:100%;width:max-content;max-width:280px;background:#fff;border:1px solid var(--line);border-radius:7px;box-shadow:0 8px 22px rgba(0,0,0,.12);z-index:70;display:none;padding:4px}
+.combo.open .combo-pop{display:block}
+.combo-pop .cs{display:flex;align-items:center;gap:6px;border:1px solid var(--line-2);border-radius:5px;padding:0 7px;height:28px;margin-bottom:4px;color:var(--muted)}
+.combo-pop .cs input{border:0;outline:0;flex:1;min-width:120px;font-size:12px;color:var(--ink)}
+.combo-pop ul{list-style:none;margin:0;padding:0;max-height:210px;overflow:auto}
+.combo-pop li{padding:6px 8px;border-radius:5px;cursor:pointer;font-size:12px;white-space:nowrap}
+.combo-pop li:hover,.combo-pop li.act{background:var(--blue-soft)}
+.combo-pop li.create{color:var(--blue)}
+.combo-pop li.none{color:var(--muted);cursor:default;background:none}
+.chips{display:flex;flex-wrap:wrap;gap:5px;align-items:center;min-height:34px;border:1px solid var(--line-2);border-radius:5px;padding:4px 6px;background:#fff;cursor:text;position:relative}
+.chips .chip{background:#5A6170;color:#fff;font-size:11px;border-radius:4px;padding:2px 4px 2px 7px;display:flex;align-items:center;gap:4px}
+.chips .chip button{border:0;background:none;color:#fff;cursor:pointer;padding:0 2px;font-size:12px;line-height:1}
+.chips .ph{color:var(--muted);font-size:12px;padding-left:4px}
+
+/* modal */
+#modalLayer{position:fixed;inset:0;background:rgba(40,42,48,.55);z-index:80;display:none;place-items:center;padding:20px}
+#modalLayer.on{display:grid}
+.mod{background:#fff;border-radius:8px;box-shadow:0 20px 50px rgba(0,0,0,.3);width:min(520px,100%);max-height:calc(100vh - 40px);display:flex;flex-direction:column;overflow:hidden}
+.mod-h{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--dark);color:#fff}
+.mod-h h3{margin:0;font-size:14px;font-weight:600}
+.mod-h .x{color:#fff}
+.mod-h.light{background:#fff;color:var(--ink);border-bottom:1px solid var(--line)}
+.mod-h.light .x{color:var(--ink-2)}
+.mod-b{padding:16px 18px;overflow:auto}
+.mod-b h4{margin:0 0 3px;font-size:13px;font-weight:600}
+.mod-b .sub{font-size:11.5px;color:var(--muted);margin:0 0 6px}
+.mod-f{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px}
+.mod.wide{width:min(1180px,100%);height:min(720px,calc(100vh - 40px))}
+
+/* preview */
+.pv{display:grid;grid-template-columns:300px 1fr;min-height:0;flex:1}
+.pv-l{border-right:1px solid var(--line);padding:16px;display:flex;flex-direction:column;overflow:auto;background:#FBFBFC}
+.pv-r{padding:14px 16px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.pv-r .meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px;color:var(--ink-2)}
+.pv-r .meta .chip{background:var(--field);border-radius:999px;padding:2px 8px;font-size:11px}
+.pv-tbl{overflow:auto;border:1px solid var(--line);border-radius:6px;flex:1}
+.pv-tbl table{border-collapse:collapse;font-size:12px;min-width:100%}
+.pv-tbl th{position:sticky;top:0;background:#F4F5F7;text-align:left;font-weight:600;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:top}
+.pv-tbl th small{display:block;font-weight:400;color:var(--muted);font-size:10.5px;margin-top:3px;line-height:1.4}
+.pv-tbl td{padding:7px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tog{display:flex;align-items:center;gap:9px;font-size:12px;margin:6px 0;cursor:pointer}
+.tog i{width:30px;height:17px;border-radius:999px;background:#C8CDD5;position:relative;display:block;transition:background .15s}
+.tog i::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;transition:left .15s}
+.tog.on i{background:#3B4250}
+.tog.on i::after{left:15px}
+
+/* add data */
+.dz{border:2px dashed #9EDB86;border-radius:10px;padding:26px 16px;text-align:center;color:var(--ink-2);font-size:12.5px;background:#FCFEFB;transition:background .15s}
+.dz.over{background:#EEF9E8}
+.dz .up{color:#79C95B;margin-bottom:6px}
+.dz .small{display:block;margin-top:10px;font-size:11.5px;color:var(--muted)}
+.dz .small button{border:0;background:none;color:var(--blue);cursor:pointer;font-size:11.5px;padding:0}
+.srcgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.srcgrid button{border:0;background:var(--field-2);border-radius:8px;padding:12px 10px;text-align:left;cursor:pointer;font-size:12px;display:flex;flex-direction:column;gap:8px;min-height:74px}
+.srcgrid button:hover{background:var(--field)}
+.srcgrid .ic{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700}
+.dsec{font-size:13px;font-weight:500;margin:18px 0 0}
+.fcard{background:var(--field-2);border-radius:8px;padding:10px 12px;margin-top:10px}
+.fcard .fh{display:flex;align-items:center;gap:8px;font-weight:500;font-size:12.5px}
+.fcard .fh .acts{margin-left:auto;display:flex;gap:4px}
+.fcard .fh .acts button{width:24px;height:24px;border-radius:50%;border:1px solid var(--line-2);background:#fff;cursor:pointer;display:grid;place-items:center;color:var(--ink-2)}
+.fcard p{margin:6px 0 0;font-size:11.5px;color:var(--ink-2);line-height:1.5}
+
+/* file picker */
+.fp{width:min(720px,100%);border-radius:12px;background:#F6F6F7}
+.fp-top{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #E1E1E3}
+.fp-top .path{margin:0 auto;background:#fff;border:1px solid #DADADD;border-radius:6px;padding:3px 10px;font-size:12px;display:flex;align-items:center;gap:6px}
+.fp-body{display:grid;grid-template-columns:150px 1fr;height:330px}
+.fp-side{border-right:1px solid #E1E1E3;padding:10px 8px;font-size:12px;color:#4A4A4F}
+.fp-side div{padding:5px 8px;border-radius:5px}
+.fp-side div.on{background:#E1E1E5}
+.fp-side small{display:block;color:#9A9AA0;font-size:10.5px;margin:10px 8px 2px}
+.fp-list{overflow:auto;background:#fff}
+.fp-list table{width:100%;border-collapse:collapse;font-size:12px}
+.fp-list th{text-align:left;font-weight:500;color:#8A8A90;padding:6px 10px;border-bottom:1px solid #EEE;font-size:11px;position:sticky;top:0;background:#fff}
+.fp-list td{padding:5px 10px;white-space:nowrap;cursor:default}
+.fp-list tr.f:nth-child(even) td{background:#F7F7F9}
+.fp-list tr.f.on td{background:#2F6FE0;color:#fff}
+.fp-list tr.dis td{color:#BBB}
+.fp-list .ficon{display:inline-block;width:11px;height:13px;background:#3DAF5B;border-radius:2px;margin-right:7px;vertical-align:-2px}
+.fp-list tr.dis .ficon{background:#CCC}
+.fp-foot{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid #E1E1E3}
+
+/* mapping view */
+#mapView{position:absolute;inset:0;background:#fff;display:none;flex-direction:column;z-index:10}
+#mapView.on{display:flex}
+.mv-empty{flex:1;display:grid;place-items:center;color:var(--ink-2)}
+.mv{flex:1;overflow:auto}
+.mv-grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,1.2fr);min-width:620px}
+.mv-grid>div{border-bottom:1px solid var(--line);padding:12px 16px;min-height:52px;display:flex;flex-direction:column;justify-content:center}
+.mv-grid>.lc{border-right:1px solid var(--line)}
+.mv-grid .hd{background:#ECEDEF;font-weight:600;min-height:62px}
+.mv-grid .hd small{font-weight:400;color:var(--blue);margin-top:2px}
+.mv-grid .hd.r small{color:var(--ink-2)}
+.mv-grid .hdrow{flex-direction:row;align-items:center;justify-content:space-between;gap:8px}
+.mv-grid .sec2{grid-column:1/-1;background:#ECEDEF;font-weight:500;flex-direction:row;align-items:center;gap:6px;min-height:36px;padding:8px 16px;border-right:0!important}
+.mv-grid .rname{flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;color:var(--blue)}
+.mv-grid .lab{flex-direction:row;align-items:center;justify-content:flex-start;gap:8px}
+.mv-grid .aname{flex-direction:row;align-items:center;justify-content:flex-start;gap:8px}
+.mv-grid .aname .sq{width:10px;height:10px;background:#1C1F26;border-radius:2px}
+.mv-grid .aname .nm{color:var(--blue)}
+.mv-grid .aname .ty{margin-left:auto;color:var(--ink-2);font-size:12px}
+.mv-grid .pv2{font-size:11.5px;color:var(--ink-2);margin-top:5px}
+.mv-grid .pair{display:grid;grid-template-columns:1fr 1.3fr;gap:10px}
+.mv-grid .pair label{font-size:11px;color:var(--ink-2);display:block;margin-bottom:4px}
+.mv-grid .combo{max-width:240px}
+.mv-grid .chips{min-height:30px}
+.code{background:#1A2130;color:#DCE3F0;font:12px/1.65 ui-monospace,Menlo,Consolas,monospace;padding:14px 16px;border-radius:8px;white-space:pre;overflow:auto;margin:0}
+.code .k{color:#C3A6FF}.code .s{color:#F2C47A}.code .c{color:#7C8AA5}.code .i{color:#7FDCCF}
+
+/* banner + guide */
+#banner{flex:none;background:#0F131B;color:#E4E8EF;display:none;align-items:center;justify-content:center;gap:10px;height:40px;font-size:12px;position:relative;z-index:12}
+#banner.on{display:flex}
+#banner .acts{position:absolute;right:12px;display:flex;gap:6px}
+#banner .btn{height:26px}
+#guide{flex:none;background:var(--guide);color:var(--guide-ink);display:flex;flex-direction:column;z-index:40;position:relative}
+#guide.min .g-body{display:none}
+.g-bar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid #263043}
+.g-bar .ttl{font-weight:600;font-size:12.5px;color:var(--guide-accent);white-space:nowrap}
+.g-steps{display:flex;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none}
+.g-steps button{flex:none;border:1px solid #2E3850;background:none;color:var(--guide-muted);border-radius:999px;height:26px;padding:0 10px;cursor:pointer;font-size:11.5px;display:flex;align-items:center;gap:6px}
+.g-steps button b{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:#2A3346;color:var(--guide-ink);font-size:10px}
+.g-steps button.on{border-color:var(--guide-accent);color:var(--guide-ink)}
+.g-steps button.on b{background:var(--guide-accent);color:#152112}
+.g-steps button.done b{background:#3C6B2D;color:#DFF5D4}
+.g-bar .gbtn{border:1px solid #2E3850;background:none;color:var(--guide-ink);height:26px;border-radius:6px;padding:0 9px;cursor:pointer;font-size:11.5px;white-space:nowrap}
+.g-bar .gbtn:hover{background:var(--guide-2)}
+.g-body{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;padding:12px 16px 14px;align-items:center}
+.g-body h4{margin:0 0 4px;font-size:15px;font-weight:600}
+.g-body p{margin:0;color:#C9D1DE;font-size:12.5px;line-height:1.6;max-width:820px}
+.g-body .path{margin-top:6px;font-size:11.5px;color:var(--guide-muted)}
+.g-body .path span{color:var(--guide-ink);background:var(--guide-2);border-radius:4px;padding:1px 6px;margin:0 2px;white-space:nowrap}
+.g-acts{display:flex;gap:8px;align-items:center}
+.g-acts button{height:34px;border-radius:8px;padding:0 14px;cursor:pointer;font-weight:600;font-size:12.5px;border:1px solid #2E3850;background:var(--guide-2);color:var(--guide-ink);white-space:nowrap}
+.g-acts button.play{background:var(--guide-accent);color:#142010;border-color:var(--guide-accent)}
+.g-acts button.stop{background:#E04848;border-color:#E04848;color:#fff}
+.g-acts .speed{display:flex;border:1px solid #2E3850;border-radius:8px;overflow:hidden}
+.g-acts .speed button{border:0;border-radius:0;height:32px;padding:0 9px;background:none;color:var(--guide-muted);font-weight:500}
+.g-acts .speed button.on{background:var(--guide-2);color:var(--guide-ink)}
+
+/* director */
+#ghost{position:fixed;left:0;top:0;width:22px;height:22px;z-index:200;pointer-events:none;display:none;transition:transform .5s cubic-bezier(.4,.1,.2,1)}
+#ghost.on{display:block}
+#ghost svg{filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.ripple{position:fixed;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:2px solid #2C6BD3;z-index:199;pointer-events:none;animation:rip .5s ease-out forwards}
+@keyframes rip{from{transform:scale(.3);opacity:1}to{transform:scale(1.4);opacity:0}}
+#shield{position:fixed;inset:0;z-index:150;display:none;cursor:not-allowed}
+#shield.on{display:block}
+.runbadge{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#151A24;color:#fff;border-radius:999px;padding:6px 14px;font-size:12px;z-index:210;display:none;align-items:center;gap:8px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.runbadge.on{display:flex}
+.runbadge i{width:8px;height:8px;border-radius:50%;background:#E04848;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+
+/* toast */
+#toasts{position:fixed;top:62px;right:16px;display:flex;flex-direction:column;gap:8px;z-index:220}
+.toast{background:#1F242E;color:#fff;padding:9px 14px;border-radius:8px;font-size:12.5px;box-shadow:0 6px 18px rgba(0,0,0,.2);max-width:340px;animation:tin .2s ease-out}
+@keyframes tin{from{transform:translateY(-6px);opacity:0}}
+
+/* publish + explorer */
+.pubsteps{list-style:none;padding:0;margin:12px 0 0}
+.pubsteps li{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:12.5px;color:var(--muted)}
+.pubsteps li i{width:16px;height:16px;border-radius:50%;border:2px solid var(--line-2);display:block;flex:none}
+.pubsteps li.run{color:var(--ink)}
+.pubsteps li.run i{border-color:var(--blue);border-right-color:transparent;animation:spin .7s linear infinite}
+.pubsteps li.ok{color:var(--ink)}
+.pubsteps li.ok i{border-color:#5DBB3C;background:#5DBB3C}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.stats div{background:var(--field-2);border-radius:8px;padding:10px}
+.stats b{display:block;font-size:20px;font-weight:600}
+.stats span{font-size:11px;color:var(--ink-2)}
+.ex{display:grid;grid-template-columns:1fr 300px;flex:1;min-height:0}
+.ex-g{position:relative;background:#F6F8FB;overflow:hidden}
+.ex-g svg{width:100%;height:100%}
+.ex-p{border-left:1px solid var(--line);padding:16px;overflow:auto}
+.ex-p h4{margin:0 0 2px;font-size:16px}
+.ex-p .cls{display:inline-block;font-size:11px;border-radius:999px;padding:1px 8px;margin-bottom:10px;color:#1C1F26}
+.ex-p dl{margin:0;font-size:12px}
+.ex-p dt{color:var(--muted);margin-top:8px}
+.ex-p dd{margin:2px 0 0;word-break:break-all}
+.ex-top{display:flex;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+.ex-top input{height:32px;border:1px solid var(--line-2);border-radius:7px;padding:0 10px;width:260px}
+.ex-top .hint{color:var(--muted);font-size:11.5px}
+.exn{cursor:pointer}
+.exn circle{stroke:#454B56;stroke-width:1.6}
+.exn.c circle{stroke-width:3;stroke:#1C1F26}
+.exn text{font-size:11.5px;text-anchor:middle;fill:#1C1F26;font-weight:600;paint-order:stroke;stroke:#F6F8FB;stroke-width:4px}
+.exe path{stroke:#9AA1AD;stroke-width:1.4;fill:none}
+.exe text{font-size:10.5px;fill:#5B616C;text-anchor:middle;paint-order:stroke;stroke:#F6F8FB;stroke-width:4px}
+
+/* list view */
+#listView{position:absolute;inset:56px 10px 10px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:auto;display:none;z-index:3}
+#listView.on{display:block}
+#listView table{width:100%;border-collapse:collapse;font-size:12.5px}
+#listView th{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);background:#FAFAFB;position:sticky;top:0}
+#listView td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+#listView .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;vertical-align:-1px}
+
+@media (max-width:820px){
+  #side{width:200px}
+  .g-body{grid-template-columns:1fr}
+  .modelpick{min-width:0}
+}
+@media (prefers-reduced-motion:reduce){#ghost{transition:none}.ripple{animation:none;display:none}}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <div class="left">
+      <button class="iconbtn round" title="프로젝트 목록" data-act="back"><svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+      <button id="projName" title="이름 바꾸기">MOVA</button>
+      <span id="saveState"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M7 18a5 5 0 0 1-.5-9.97A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"/></svg><span>Saved to Cloud</span><span> * 이 페이지는 <a href="https://cloud.stardog.com/" target="_blank">Stardog</a>을 참조한 데모입니다.</span></span>
+    </div>
+    <nav class="tabs-top">
+      <button class="on" data-tab="model"><svg class="i" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="19" r="2"/><circle cx="19" cy="5" r="2"/></svg>Data Model</button>
+      <button data-tab="mapping"><svg class="i" viewBox="0 0 24 24"><path d="M5 4v12h6M5 10h6"/><rect x="13" y="13" width="6" height="6" rx="1"/><rect x="13" y="7" width="6" height="6" rx="1"/></svg>Mapping</button>
+    </nav>
+    <div class="right">
+      <button class="iconbtn" data-act="more" title="더 보기"><svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>
+      <button class="btn green" data-act="publish">Publish</button>
+    </div>
+  </header>
+
+  <div id="main">
+    <aside id="side">
+      <div id="sideModel" style="display:flex;flex-direction:column;flex:1;min-height:0">
+        <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/></svg><input id="sideSearch" placeholder="Search"></label>
+        <div class="sec" id="secMappings" style="display:none">
+          <div class="sec-h"><span class="chev"><svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"/></svg></span><b>Mappings</b><button class="iconbtn round add" data-act="new-mapping" title="New Mapping" style="width:24px;height:24px"><svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M12 5v14M5 12h14"/></svg></button></div>
+          <div class="sec-b"><div class="tree" id="mapTree"></div></div>
+        </div>
+        <div class="side-fill" id="sideFill" style="display:none"></div>
+        <div class="sec" id="secQ">
+          <div class="sec-h"><span class="chev"><svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"/></svg></span><b>Questions</b><span class="cnt" id="qCount">0</span><button class="iconbtn round add" data-act="add-question" title="질문 추가" style="width:24px;height:24px"><svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M12 5v14M5 12h14"/></svg></button></div>
+          <div class="sec-b" id="qList"></div>
+        </div>
+        <div class="sec" id="secR">
+          <div class="sec-h"><span class="chev"><svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"/></svg></span><b>Resources</b><span class="cnt" id="rCount">0</span><button class="iconbtn round add" data-act="add-data" title="Add data" style="width:24px;height:24px"><svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M12 5v14M5 12h14"/></svg></button></div>
+          <div class="sec-b" id="rList"></div>
+        </div>
+      </div>
+      <div id="voice">
+        <div class="vh"><span class="vlogo">VOICEB<svg viewBox="0 0 24 24" style="width:15px;height:15px;vertical-align:-2px;fill:#3B4250"><path d="M4 9a3 3 0 0 1 3-3h7l3-2v4a3 3 0 0 1 3 3v3a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/></svg>X</span><button class="iconbtn" data-act="close-voice" title="닫기"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="vsum"><svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M6 9l6 6 6-6"/></svg><b>Model Summary</b><span class="badge" id="vBadge"><i></i><span>0</span></span></div>
+        <div class="vlog" id="vLog"></div>
+        <div class="vin">
+          <div class="vchips"><button data-vchip="Credit 클래스에 어떤 속성이 있나요?">Credit 클래스에 어떤 속성이…</button><button data-vchip="Genre 클래스를 추가해줘">Genre 클래스를…</button></div>
+          <div class="vbox"><textarea id="vInput" placeholder="Ask Voicebox"></textarea><button class="send" data-act="vsend" aria-label="보내기"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#1E3B12"><path d="M6 4l14 8-14 8z"/></svg></button></div>
+        </div>
+      </div>
+    </aside>
+
+    <section id="center">
+      <div id="canvasWrap">
+        <svg id="svg">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" fill="#5B616C"/></marker>
+            <marker id="arrS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" fill="#1C1F26"/></marker>
+            <marker id="arrM" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" fill="#2C2F36"/></marker>
+            <marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" fill="#4D8EE8"/></marker>
+            <marker id="arrH" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" fill="#fff" stroke="#5B616C"/></marker>
+          </defs>
+          <g id="world"></g>
+        </svg>
+        <div class="empty-hint" id="emptyHint">빈 모델입니다.<br>툴바의 <b>● Add class</b>로 첫 클래스를 만들거나, 아래 가이드의 <b>자동 실행</b>을 눌러 보세요.</div>
+        <div class="ctool">
+          <div class="modelpick"><svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M6 9l6 6 6-6"/></svg><span class="lab">Model:</span><b id="modelName">MOVA</b><button class="iconbtn round" style="width:24px;height:24px" data-act="model-plus" title="모델 추가"><svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M12 5v14M5 12h14"/></svg></button></div>
+          <div class="tb">
+            <button data-act="layout"><span class="tip">Redraw Layout</span><svg class="i" viewBox="0 0 24 24"><rect x="4" y="3" width="6" height="5" rx="1"/><rect x="14" y="16" width="6" height="5" rx="1"/><rect x="14" y="9" width="6" height="5" rx="1"/><path d="M7 8v10h7M7 11.5h7"/></svg></button>
+            <button data-act="add-class"><span class="tip">Add class</span><svg viewBox="0 0 24 24" style="width:16px;height:16px"><circle cx="12" cy="12" r="7" fill="#1C1F26"/></svg></button>
+            <button data-act="add-rel"><span class="tip">Add relationship</span><svg class="i" viewBox="0 0 24 24"><path d="M6 4v10a4 4 0 0 0 4 4h8"/><path d="M15 15l3 3-3 3"/><circle cx="6" cy="4" r="1.6"/></svg></button>
+            <button data-act="delete" id="tbDelete" disabled><span class="tip">Delete</span><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
+            <button data-act="undo" id="tbUndo" disabled><span class="tip">Undo</span><svg class="i" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+            <button data-act="redo" id="tbRedo" disabled><span class="tip">Redo</span><svg class="i" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
+          </div>
+          <div class="tb-right">
+            <input class="csearch" id="cSearch" placeholder="클래스, 리소스 검색">
+            <button class="iconbtn" data-act="csearch" title="검색"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/></svg></button>
+            <button class="rules" data-act="rules"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 4h5v5H4zM15 15h5v5h-5zM9 6.5h6.5V15"/></svg>Rules</button>
+            <div class="seg"><button data-view="list" title="목록 보기"><svg class="i" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button><button class="on" data-view="graph" title="그래프 보기"><svg class="i" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.3 11l7.4-3.8M8.3 13l7.4 3.8"/></svg></button></div>
+          </div>
+        </div>
+        <div class="legend" id="legend"><span class="c">Changes</span><span class="d">Deletions</span></div>
+        <div id="listView"></div>
+        <button id="vbtn" data-act="toggle-voice" title="Voicebox"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#1E3B12"><path d="M4 9a3 3 0 0 1 3-3h7l3-2v4a3 3 0 0 1 3 3v3a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/><circle cx="9" cy="11.5" r="1.2" fill="#8BE36B"/><circle cx="14" cy="11.5" r="1.2" fill="#8BE36B"/></svg><span class="n" id="vbtnN" style="display:none">0</span></button>
+      </div>
+      <div id="mapView"></div>
+    </section>
+
+    <div id="dim"></div>
+    <div id="drawer"></div>
+  </div>
+
+  <div id="banner"><span>You are viewing a preview of suggested mappings and data model changes.</span><div class="acts"><button class="btn" style="background:#fff;color:#1C1F26" data-act="discard">Discard</button><button class="btn green" data-act="accept">Accept Changes</button></div></div>
+
+  <div id="guide">
+    <div class="g-bar">
+      <span class="ttl">설명 가이드</span>
+      <div class="g-steps" id="gSteps"></div>
+      <button class="gbtn" data-g="reset" title="빈 모델로 초기화">처음부터</button>
+      <button class="gbtn" data-g="min" id="gMin" title="가이드 접기 (G)">접기</button>
+    </div>
+    <div class="g-body">
+      <div><h4 id="gTitle"></h4><p id="gDesc"></p><div class="path" id="gPath"></div></div>
+      <div class="g-acts">
+        <div class="speed" title="자동 실행 속도"><button data-speed="1" class="on">1x</button><button data-speed="1.8">2x</button></div>
+        <button data-g="jump" title="이 단계가 끝난 상태로 바로 이동">결과로 이동</button>
+        <button class="play" data-g="play" id="gPlay">▶ 자동 실행</button>
+        <button data-g="next" title="다음 단계 (→ 키는 가이드에 초점이 있을 때)">다음 ›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modalLayer"></div>
+<div id="toasts"></div>
+<div id="shield"></div>
+<div class="runbadge" id="runBadge"><i></i><span id="runText">자동 실행 중</span><button class="btn" style="height:22px;background:#E04848;color:#fff;margin-left:6px" data-g="stop">중지 (Esc)</button></div>
+<div id="ghost"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 3l14 8-6 1.5L10 19z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+<input type="file" id="realFile" accept=".csv,text/csv" multiple hidden>
+
+<script>
+/* ---------- 샘플 데이터 (MOVA 영화 원천 DB) ---------- */
+const DATA = (() => {
+  const MOV = [
+    ['인터스텔라','Interstellar',2014],['인셉션','Inception',2010],['다크 나이트','The Dark Knight',2008],
+    ['기생충','Parasite',2019],['올드보이','Oldboy',2003],['매트릭스','The Matrix',1999],
+    ['컨택트','Arrival',2016],['블레이드 러너 2049','Blade Runner 2049',2017],['듄','Dune',2021],
+    ['살인의 추억','Memories of Murder',2003],['테넷','Tenet',2020],['그래비티','Gravity',2013],
+    ['마션','The Martian',2015],['헤어질 결심','Decision to Leave',2022],['라라랜드','La La Land',2016],
+    ['위플래쉬','Whiplash',2014],['설국열차','Snowpiercer',2013],['오펜하이머','Oppenheimer',2023],
+    ['에이리언','Alien',1979],['아가씨','The Handmaiden',2016]
+  ];
+  const PEOPLE = {
+    nolan:['Christopher Nolan','크리스토퍼 놀란',1970],mcc:['Matthew McConaughey','매튜 맥커너히',1969],
+    hathaway:['Anne Hathaway','앤 해서웨이',1982],chastain:['Jessica Chastain','제시카 차스테인',1977],
+    dicaprio:['Leonardo DiCaprio','레오나르도 디카프리오',1974],jgl:['Joseph Gordon-Levitt','조셉 고든레빗',1981],
+    page:['Elliot Page','엘리엇 페이지',1987],bale:['Christian Bale','크리스찬 베일',1974],
+    ledger:['Heath Ledger','히스 레저',1979],bong:['Bong Joon-ho','봉준호',1969],
+    song:['Song Kang-ho','송강호',1967],choiws:['Choi Woo-shik','최우식',1990],
+    parksd:['Park So-dam','박소담',1991],park:['Park Chan-wook','박찬욱',1963],
+    choims:['Choi Min-sik','최민식',1962],yoo:['Yoo Ji-tae','유지태',1976],
+    lana:['Lana Wachowski','라나 워쇼스키',1965],lilly:['Lilly Wachowski','릴리 워쇼스키',1967],
+    keanu:['Keanu Reeves','키아누 리브스',1964],moss:['Carrie-Anne Moss','캐리앤 모스',1967],
+    villeneuve:['Denis Villeneuve','드니 빌뇌브',1967],adams:['Amy Adams','에이미 애덤스',1974],
+    renner:['Jeremy Renner','제레미 레너',1971],gosling:['Ryan Gosling','라이언 고슬링',1980],
+    ford:['Harrison Ford','해리슨 포드',1942],chalamet:['Timothée Chalamet','티모시 샬라메',1995],
+    zendaya:['Zendaya','젠데이아',1996],kimsk:['Kim Sang-kyung','김상경',1972],
+    jdw:['John David Washington','존 데이비드 워싱턴',1984],pattinson:['Robert Pattinson','로버트 패틴슨',1986],
+    cuaron:['Alfonso Cuarón','알폰소 쿠아론',1961],bullock:['Sandra Bullock','산드라 블록',1964],
+    clooney:['George Clooney','조지 클루니',1961],scott:['Ridley Scott','리들리 스콧',1937],
+    damon:['Matt Damon','맷 데이먼',1970],parkhi:['Park Hae-il','박해일',1977],
+    tang:['Tang Wei','탕웨이',1979],chazelle:['Damien Chazelle','데이미언 셔젤',1985],
+    stone:['Emma Stone','엠마 스톤',1988],teller:['Miles Teller','마일즈 텔러',1987],
+    simmons:['J.K. Simmons','J.K. 시몬스',1955],evans:['Chris Evans','크리스 에반스',1981],
+    murphy:['Cillian Murphy','킬리언 머피',1976],blunt:['Emily Blunt','에밀리 블런트',1983],
+    weaver:['Sigourney Weaver','시고니 위버',1949],kimmh:['Kim Min-hee','김민희',1982],
+    kimtr:['Kim Tae-ri','김태리',1990]
+  };
+  const CRED = [
+    [['nolan'],[['mcc','Cooper'],['hathaway','Brand'],['chastain','Murph']]],
+    [['nolan'],[['dicaprio','Cobb'],['jgl','Arthur'],['page','Ariadne']]],
+    [['nolan'],[['bale','Bruce Wayne'],['ledger','Joker']]],
+    [['bong'],[['song','기택'],['choiws','기우'],['parksd','기정']]],
+    [['park'],[['choims','오대수'],['yoo','이우진']]],
+    [['lana','lilly'],[['keanu','Neo'],['moss','Trinity']]],
+    [['villeneuve'],[['adams','Louise Banks'],['renner','Ian Donnelly']]],
+    [['villeneuve'],[['gosling','K'],['ford','Rick Deckard']]],
+    [['villeneuve'],[['chalamet','Paul Atreides'],['zendaya','Chani']]],
+    [['bong'],[['song','박두만'],['kimsk','서태윤']]],
+    [['nolan'],[['jdw','Protagonist'],['pattinson','Neil']]],
+    [['cuaron'],[['bullock','Ryan Stone'],['clooney','Matt Kowalski']]],
+    [['scott'],[['damon','Mark Watney'],['chastain','Melissa Lewis']]],
+    [['park'],[['parkhi','해준'],['tang','서래']]],
+    [['chazelle'],[['gosling','Sebastian'],['stone','Mia']]],
+    [['chazelle'],[['teller','Andrew'],['simmons','Fletcher']]],
+    [['bong'],[['evans','Curtis'],['song','남궁민수']]],
+    [['nolan'],[['murphy','J. Robert Oppenheimer'],['blunt','Kitty Oppenheimer']]],
+    [['scott'],[['weaver','Ripley']]],
+    [['park'],[['kimmh','히데코'],['kimtr','숙희']]]
+  ];
+  const GEN = [['G001','SF','Science Fiction'],['G002','드라마','Drama'],['G003','스릴러','Thriller'],['G004','액션','Action'],['G005','범죄','Crime'],['G006','로맨스','Romance'],['G007','뮤지컬','Musical'],['G008','공포','Horror'],['G009','미스터리','Mystery']];
+  const MG = [[1,2],[1,4],[4,5],[2,3],[3,9],[1,4],[1,2],[1,9],[1,4],[5,9],[1,4],[1,3],[1,2],[9,6],[7,6],[2],[1,4],[2],[1,8],[3,6]];
+
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const pad = (n, w) => String(n).padStart(w, '0');
+
+  const movie = MOV.map((m, i) => ({movie_id:'M'+pad(i+1,4), movie_title:m[0], original_title:m[1], release_year:String(m[2]), is_available:i%7===5?'N':'Y', created_date:'2026-09-'+pad(1+(i%18),2)}));
+
+  // person ids: Nolan fixed to P0032 (발표자료와 동일), 나머지는 순서대로
+  const keys = Object.keys(PEOPLE); const pid = {}; let n = 1;
+  pid.nolan = 'P0032';
+  keys.forEach(k => { if (k === 'nolan') return; if (n === 32) n++; pid[k] = 'P' + pad(n++, 4); });
+  const person = keys.map(k => ({person_id:pid[k], person_name:PEOPLE[k][0], person_name_local:PEOPLE[k][1], birth_year:String(PEOPLE[k][2])}))
+    .sort((a,b)=>a.person_id.localeCompare(b.person_id));
+
+  const credit = []; let c = 1;
+  CRED.forEach((cr, i) => {
+    cr[0].forEach((d, j) => credit.push({credit_id:'CR'+pad(c++,5), movie_id:movie[i].movie_id, person_id:pid[d], credit_type_cd:'DIR', credit_order:String(j+1), character_name:''}));
+    cr[1].forEach((a, j) => credit.push({credit_id:'CR'+pad(c++,5), movie_id:movie[i].movie_id, person_id:pid[a[0]], credit_type_cd:'ACT', credit_order:String(j+1), character_name:a[1]}));
+  });
+  const ctype = [{credit_type_cd:'DIR', credit_type_name:'Director'},{credit_type_cd:'ACT', credit_type_name:'Actor'}];
+  const genre = GEN.map(g => ({genre_id:g[0], genre_name:g[1], genre_name_en:g[2]}));
+  const mgenre = []; MG.forEach((gs,i)=>gs.forEach((g,j)=>mgenre.push({movie_id:movie[i].movie_id, genre_id:GEN[g-1][0], display_order:String(j+1)})));
+
+  const AGE = ['10대','20대','30대','40대','50대+'], DEV = ['TV','Mobile','PC','Tablet'];
+  const member = Array.from({length:40},(_,i)=>({member_id:'U'+pad(i+1,4), join_date:'202'+(3+Math.floor(rnd()*3))+'-'+pad(1+Math.floor(rnd()*12),2)+'-'+pad(1+Math.floor(rnd()*27),2), age_group:AGE[Math.floor(rnd()*5)], account_status:rnd()<.88?'ACTIVE':'PAUSED'}));
+  const rating = []; const watch = [];
+  member.forEach(m => {
+    const k = 2 + Math.floor(rnd()*4);
+    for (let j=0;j<k;j++){
+      const mv = movie[Math.floor(rnd()*movie.length)];
+      watch.push({watch_id:'W'+pad(watch.length+1,5), member_id:m.member_id, movie_id:mv.movie_id, watched_at:'2026-0'+(6+Math.floor(rnd()*3))+'-'+pad(1+Math.floor(rnd()*28),2), completion_rate:String(Math.round(40+rnd()*60)), device:DEV[Math.floor(rnd()*4)]});
+      if (rnd()<.7) rating.push({rating_id:'R'+pad(rating.length+1,5), member_id:m.member_id, movie_id:mv.movie_id, score:(Math.round((2.5+rnd()*2.5)*2)/2).toFixed(1), rated_at:'2026-09-'+pad(1+Math.floor(rnd()*28),2), review:''});
+    }
+  });
+  const dirName = i => CRED[i][0].map(k=>PEOPLE[k][1]).join(', ');
+  const catalog = movie.map((m,i)=>({catalog_id:'C'+pad(i+1,4), display_title:m.movie_title+' ('+m.release_year+')', category:GEN[MG[i][0]-1][1], director_text:dirName(i), offer_type:i%3===0?'RENTAL':'STREAMING'}));
+
+  const files = [
+    {name:'README.md', size:'3KB', kind:'Markdown 문서', disabled:true},
+    {name:'WATCH_HISTORY.csv', rows:watch},
+    {name:'PERSON.csv', rows:person},
+    {name:'OTT_MOVIE_CATALOG.csv', rows:catalog},
+    {name:'MOVIE_RATING.csv', rows:rating},
+    {name:'MOVIE_GENRE.csv', rows:mgenre},
+    {name:'MOVIE_CREDIT.csv', rows:credit},
+    {name:'MOVIE.csv', rows:movie},
+    {name:'MEMBER.csv', rows:member},
+    {name:'GENRE_CODE.csv', rows:genre},
+    {name:'CREDIT_TYPE_CODE.csv', rows:ctype}
+  ];
+  files.forEach(f => {
+    if (!f.rows) return;
+    f.cols = Object.keys(f.rows[0]);
+    const bytes = f.rows.reduce((s,r)=>s+Object.values(r).join(',').length+1, f.cols.join(',').length);
+    f.size = bytes < 1024 ? bytes + '바이트' : Math.max(1, Math.round(bytes/1024)) + 'KB';
+    f.kind = '쉼표로 분리된 값';
+  });
+  return { files };
+})();
+
+/* ================= 공통 도우미 ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const el = html => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+let _uid = 0; const uid = p => p + (++_uid).toString(36) + Math.random().toString(36).slice(2, 5);
+const snake = s => s.replace(/([a-z0-9])([A-Z])/g, '$1_$2').replace(/[\s-]+/g, '_').toLowerCase();
+const pascal = s => s.toLowerCase().split(/[_\s-]+/).map(w => w[0] ? w[0].toUpperCase() + w.slice(1) : '').join('');
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const ICON = {
+  file:'<svg class="i" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg>',
+  eye:'<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  x:'<svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  info:'<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+  search:'<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/></svg>',
+  caret:'<svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px;fill:currentColor;stroke:none"><path d="M7 10l5 5 5-5z"/></svg>',
+  back:'<svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>',
+  rel:'<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><circle cx="5" cy="12" r="2"/><path d="M7 12h12M15 8l4 4-4 4"/></svg>',
+  circle:'<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><circle cx="12" cy="12" r="7"/></svg>',
+  map:'<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M5 4v12h6M5 10h6"/><rect x="13" y="13" width="6" height="6" rx="1"/><rect x="13" y="7" width="6" height="6" rx="1"/></svg>',
+  up:'<svg class="i" viewBox="0 0 24 24" style="width:26px;height:26px"><path d="M7 18a5 5 0 0 1-.5-9.97A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9"/><path d="M12 12v8M9 15l3-3 3 3"/></svg>'
+};
+const COLORS = ['#E4573D','#F2917B','#EBAA4A','#D9C02F','#8DBB4C','#5FB0A6','#7C98CF','#B583C9','#E07AA0','#9A8C78'];
+const XSD = ['anyURI','base64Binary','boolean','date','dateTime','dayTimeDuration','decimal','double','duration','float','gDay','gMonth','gYear','gYearMonth','hexBinary','int','integer','long','string','time'];
+const RULES = [['','—'],['min1','필수 (min 1)'],['max1','최대 1개 (max 1)'],['exact1','정확히 1개']];
+
+/* ================= 상태 ================= */
+const S = {
+  project:'MOVA', classes:[], rels:[], resources:[], mappings:[], questions:[],
+  pending:null, voiceLog:[], published:null, flags:{}
+};
+const UI = { tab:'model', view:'graph', sel:null, vx:0, vy:0, k:1, search:'', mapSel:null, showSms:false };
+const MODEL_KEYS = ['project','classes','rels','resources','mappings','questions','flags'];
+const hist = { past:[], future:[] };
+const snap = () => JSON.stringify(Object.fromEntries(MODEL_KEYS.map(k => [k, S[k]])));
+const restore = j => { const o = JSON.parse(j); MODEL_KEYS.forEach(k => S[k] = o[k]); };
+
+function commit(fn, opts = {}) {
+  if (!opts.noHistory) { hist.past.push(snap()); if (hist.past.length > 80) hist.past.shift(); hist.future = []; }
+  fn();
+  saving();
+  renderAll();
+}
+function undo() { if (!hist.past.length) return; hist.future.push(snap()); restore(hist.past.pop()); if (!S.mappings.some(m => m.pending)) S.pending = null; UI.sel = null; closeDrawer(); saving(); renderAll(); }
+function redo() { if (!hist.future.length) return; hist.past.push(snap()); restore(hist.future.pop()); if (!S.mappings.some(m => m.pending)) S.pending = null; UI.sel = null; closeDrawer(); saving(); renderAll(); }
+
+let saveT;
+function saving() {
+  const s = $('#saveState');
+  s.innerHTML = '<span class="spin"></span><span>Saving...</span>';
+  clearTimeout(saveT);
+  saveT = setTimeout(() => s.innerHTML = '<svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M7 18a5 5 0 0 1-.5-9.97A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"/></svg><span>Saved to Cloud</span>', 650);
+}
+function toast(msg, ms = 2600) {
+  const t = el(`<div class="toast">${msg}</div>`); $('#toasts').appendChild(t);
+  setTimeout(() => t.remove(), ms);
+}
+
+/* ================= 모델 연산 ================= */
+const cls = id => S.classes.find(c => c.id === id);
+const clsByName = n => S.classes.find(c => c.name.toLowerCase() === String(n).toLowerCase());
+const res = id => S.resources.find(r => r.id === id);
+const resByName = n => S.resources.find(r => r.name.toLowerCase() === String(n).toLowerCase());
+const relById = id => S.rels.find(r => r.id === id);
+const relByName = n => S.rels.find(r => r.name === n);
+const attrById = (c, id) => c.attrs.find(a => a.id === id);
+
+function nextClassPos() {
+  const vp = viewCenter();
+  const n = S.classes.length;
+  return { x: vp.x + 180, y: vp.y - 170 + (n % 5) * 95 };
+}
+function addClass(name, desc = '', extra = {}) {
+  const c = { id: uid('c'), name, desc, color: COLORS[S.classes.length % COLORS.length], ...nextClassPos(), attrs: [], parent: null, geo: false, ...extra };
+  S.classes.push(c); return c;
+}
+function addRel(name, pairs, desc = '') {
+  let r = relByName(name);
+  if (r) { pairs.forEach(p => { if (!r.pairs.some(q => q.s === p.s && q.t === p.t)) r.pairs.push(p); }); return r; }
+  r = { id: uid('r'), name, desc, pairs }; S.rels.push(r); return r;
+}
+function addAttr(c, name, type = 'string', rule = '') {
+  let a = c.attrs.find(x => x.name === name);
+  if (a) { a.type = type; return a; }
+  a = { id: uid('a'), name, type, rule }; c.attrs.push(a); return a;
+}
+function deleteClass(id) {
+  S.classes = S.classes.filter(c => c.id !== id);
+  S.classes.forEach(c => { if (c.parent === id) c.parent = null; });
+  S.rels.forEach(r => r.pairs = r.pairs.filter(p => p.s !== id && p.t !== id));
+  S.rels = S.rels.filter(r => r.pairs.length);
+  S.mappings = S.mappings.filter(m => m.cls !== id);
+  S.mappings.forEach(m => m.rels = m.rels.filter(x => x.target !== id));
+}
+function deleteResource(id) { S.resources = S.resources.filter(r => r.id !== id); S.mappings = S.mappings.filter(m => m.res !== id); }
+
+/* 리소스 */
+function inferType(vals) {
+  const v = vals.filter(x => x !== '' && x != null);
+  if (!v.length) return 'string';
+  if (v.every(x => /^-?\d+$/.test(x))) return v.every(x => /^(1[89]|20)\d\d$/.test(x)) ? 'gYear' : 'integer';
+  if (v.every(x => /^-?\d+(\.\d+)?$/.test(x))) return 'decimal';
+  if (v.every(x => /^(Y|N|true|false)$/i.test(x))) return 'boolean';
+  if (v.every(x => /^\d{4}-\d\d-\d\d$/.test(x))) return 'date';
+  return 'string';
+}
+function makeResource(name, cols, rows) {
+  const n = S.resources.length;
+  const base = graphBounds();
+  const free = S.resources.filter(r => !S.mappings.some(m => m.res === r.id)).length;
+  return { id: uid('s'), name, file: name + '.csv', cols, rows, x: base.minX - 60 + free * 150, y: base.maxY + 170,
+    props: { sep: ',', quote: '"', esc: '"', header: true, skip: true }, updated: new Date().toISOString() };
+}
+function describeRes(r) {
+  return `The dataset contains ${r.cols.length} columns and ${r.rows.length} rows. Detected columns include ${r.cols.join(', ')}.`;
+}
+
+/* 매핑 제안 (Voicebox 역할) */
+function pickCol(cols, cands) {
+  for (const c of cands) { const f = cols.find(x => x === c); if (f) return f; }
+  for (const c of cands) { const f = cols.find(x => x.endsWith(c)); if (f) return f; }
+  for (const c of cands) { const f = cols.find(x => x.includes(c)); if (f) return f; }
+  return null;
+}
+function idColFor(c, cols) {
+  const s = snake(c.name);
+  const own = S.mappings.find(m => m.cls === c.id);
+  const cands = [s + '_id', s + '_cd', s + '_code'];
+  if (own && own.primary[0]) cands.unshift(own.primary[0]);
+  return pickCol(cols, cands);
+}
+function suggestMapping(r, c) {
+  const cols = r.cols;
+  const prim = idColFor(c, cols) || cols.find(x => /_(id|cd)$/.test(x)) || cols[0];
+  const sn = snake(c.name);
+  const label = cols.find(x => x === sn + '_title' || x === sn + '_name') || cols.find(x => x.startsWith(sn.split('_')[0] + '_') && /_(title|name)$/.test(x)) || prim;
+  const rels = [];
+  S.rels.forEach(rel => rel.pairs.filter(p => p.s === c.id).forEach(p => {
+    const t = cls(p.t); if (!t) return;
+    const col = idColFor(t, cols.filter(x => x !== prim));
+    if (col) rels.push({ rel: rel.id, target: t.id, col });
+  }));
+  const attrs = [];
+  c.attrs.forEach(a => { const s = snake(a.name); const col = pickCol(cols, [s, s.replace(/^.*_/, '')]); if (col) attrs.push({ attr: a.id, col }); });
+  return { id: uid('m'), res: r.id, cls: c.id, primary: [prim], labelOn: true, label, rels, attrs, pending: true };
+}
+/* 클래스를 비워두면 리소스에서 클래스 개념을 만든다 */
+function generateClassFrom(r) {
+  let name = pascal(r.name.replace(/_(CODE|CD)$/i, '').replace(/^OTT_/i, ''));
+  if (r.name.toUpperCase() === 'MOVIE_CREDIT') name = 'Credit';
+  let c = clsByName(name);
+  if (!c) {
+    c = addClass(name, `${r.name}에서 생성됨`);
+    r.cols.filter(x => !/_(id|cd)$/.test(x)).forEach(col => addAttr(c, col.replace(/_([a-z])/g, (_, ch) => ch.toUpperCase()), inferType(r.rows.slice(0, 30).map(row => row[col]))));
+  }
+  return c;
+}
+
+function beginPending() { if (!S.pending) S.pending = snap(); }
+function createMappings(resIds, clsIds) {
+  beginPending();
+  const made = [];
+  resIds.forEach(rid => {
+    const r = res(rid);
+    const targets = clsIds.length ? clsIds : [generateClassFrom(r).id];
+    targets.forEach(cid => {
+      S.mappings = S.mappings.filter(m => !(m.res === rid && m.cls === cid));
+      const m = suggestMapping(r, cls(cid)); S.mappings.push(m); made.push(m);
+      placeResource(r, cls(cid));
+    });
+  });
+  S.voiceLog.push({ who: 'vb', text: 'Added suggested mappings.' });
+  return made;
+}
+function placeResource(r, c) {
+  const isSource = S.rels.some(x => x.pairs.some(p => p.s === c.id));
+  if (isSource) { r.x = c.x - 30; r.y = c.y + 240; } else { r.x = c.x + 280; r.y = c.y + 10; }
+}
+function acceptChanges() { S.mappings.forEach(m => m.pending = false); S.pending = null; S.voiceLog.push({ sep: 'Accepted changes' }); }
+function discardChanges() { if (!S.pending) return; const log = S.voiceLog; restore(S.pending); S.pending = null; S.voiceLog = log.concat({ sep: 'Discarded changes' }); }
+const pendingCount = () => S.mappings.filter(m => m.pending).length;
+
+/* 레이아웃: 관계 방향 기준 계층 배치 */
+function redrawLayout() {
+  const ids = S.classes.map(c => c.id);
+  const out = {}, indeg = {};
+  ids.forEach(i => { out[i] = []; indeg[i] = 0; });
+  S.rels.forEach(r => r.pairs.forEach(p => { if (p.s !== p.t && out[p.s]) { out[p.s].push(p.t); indeg[p.t]++; } }));
+  S.classes.forEach(c => { if (c.parent && out[c.parent]) { out[c.id].push(c.parent); indeg[c.parent]++; } });
+  const layer = {}; ids.forEach(i => layer[i] = 0);
+  for (let it = 0; it < ids.length; it++) ids.forEach(i => out[i].forEach(t => { if (layer[t] < layer[i] + 1 && layer[i] + 1 < ids.length) layer[t] = layer[i] + 1; }));
+  const cols = {}; ids.forEach(i => (cols[layer[i]] = cols[layer[i]] || []).push(i));
+  const vc = viewCenter(); const L = Object.keys(cols).length;
+  Object.entries(cols).forEach(([l, arr]) => {
+    arr.forEach((id, j) => { const c = cls(id); c.x = vc.x + (l - (L - 1) / 2) * 290; c.y = vc.y + (j - (arr.length - 1) / 2) * 150; });
+  });
+  // 리소스: 매핑된 클래스 옆, 아니면 아래쪽 줄
+  const free = [];
+  S.resources.forEach(r => {
+    const m = S.mappings.find(x => x.res === r.id); const c = m && cls(m.cls);
+    if (!c) { free.push(r); return; }
+    placeResource(r, c);
+  });
+  const b = graphBounds(true);
+  free.forEach((r, i) => { r.x = b.minX + i * 140; r.y = b.maxY + 150; });
+  S.flags.layout = true;
+}
+function graphBounds(classesOnly) {
+  const pts = S.classes.map(c => [c.x, c.y]).concat(classesOnly ? [] : S.resources.map(r => [r.x, r.y]));
+  if (!pts.length) { const v = viewCenter(); return { minX: v.x - 100, maxX: v.x + 100, minY: v.y - 100, maxY: v.y - 100 }; }
+  return { minX: Math.min(...pts.map(p => p[0])), maxX: Math.max(...pts.map(p => p[0])), minY: Math.min(...pts.map(p => p[1])), maxY: Math.max(...pts.map(p => p[1])) };
+}
+function viewCenter() {
+  const w = $('#canvasWrap'); const W = w.clientWidth || 900, H = w.clientHeight || 600;
+  return { x: (W / 2 - UI.vx) / UI.k, y: (H / 2 + 20 - UI.vy) / UI.k };
+}
+
+/* 인스턴스 생성 (게시/탐색용) */
+function iri(c, id) { return `tag:stardog:designer:${S.project}:data:${c.name}:${id}`; }
+function buildInstances() {
+  const nodes = new Map(); const edges = [];
+  const key = (c, id) => c.id + '|' + id;
+  S.mappings.filter(m => !m.pending).forEach(m => {
+    const r = res(m.res), c = cls(m.cls); if (!r || !c) return;
+    r.rows.forEach(row => {
+      const id = m.primary.map(p => row[p]).join('_'); if (!id) return;
+      const k = key(c, id);
+      const n = nodes.get(k) || { k, cls: c, id, label: id, props: {} };
+      if (m.labelOn && row[m.label]) n.label = row[m.label];
+      m.attrs.forEach(a => { const at = attrById(c, a.attr); if (at && row[a.col] !== '' && row[a.col] != null) n.props[at.name] = row[a.col]; });
+      nodes.set(k, n);
+      m.rels.forEach(x => { const t = cls(x.target), rel = relById(x.rel); if (t && rel && row[x.col]) edges.push({ s: k, t: key(t, row[x.col]), name: rel.name, tc: t }); });
+    });
+  });
+  edges.forEach(e => { if (!nodes.has(e.t)) nodes.set(e.t, { k: e.t, cls: e.tc, id: e.t.split('|')[1], label: e.t.split('|')[1], props: {} }); });
+  return { nodes, edges };
+}
+
+/* 코드 생성 */
+function genTurtle() {
+  const P = `tag:stardog:designer:${S.project}:model:`;
+  let t = `<span class="k">@prefix</span> : <span class="i">&lt;${P}&gt;</span> .\n<span class="k">@prefix</span> owl: <span class="i">&lt;http://www.w3.org/2002/07/owl#&gt;</span> .\n<span class="k">@prefix</span> rdfs: <span class="i">&lt;http://www.w3.org/2000/01/rdf-schema#&gt;</span> .\n<span class="k">@prefix</span> xsd: <span class="i">&lt;http://www.w3.org/2001/XMLSchema#&gt;</span> .\n`;
+  if (!S.classes.length) t += '\n<span class="c"># 아직 정의된 클래스가 없습니다</span>\n';
+  S.classes.forEach(c => {
+    t += `\n:${c.name} <span class="k">a</span> owl:Class ;\n    rdfs:label <span class="s">"${esc(c.name)}"</span>`;
+    if (c.desc) t += ` ;\n    rdfs:comment <span class="s">"${esc(c.desc)}"</span>`;
+    if (c.parent && cls(c.parent)) t += ` ;\n    rdfs:subClassOf :${cls(c.parent).name}`;
+    t += ' .\n';
+  });
+  S.rels.forEach(r => r.pairs.forEach(p => { if (cls(p.s) && cls(p.t)) t += `\n:${r.name} <span class="k">a</span> owl:ObjectProperty ;\n    rdfs:domain :${cls(p.s).name} ; rdfs:range :${cls(p.t).name} .\n`; }));
+  S.classes.forEach(c => c.attrs.forEach(a => {
+    t += `\n:${a.name} <span class="k">a</span> owl:DatatypeProperty ;\n    rdfs:domain :${c.name} ; rdfs:range xsd:${a.type} .\n`;
+    if (a.rule) t += `<span class="c"># 규칙: ${RULES.find(r => r[0] === a.rule)[1]}</span>\n`;
+  }));
+  return t;
+}
+function genSms(m) {
+  const r = res(m.res), c = cls(m.cls); if (!r || !c) return '';
+  const P = `tag:stardog:designer:${S.project}`;
+  const v = s => '?' + s;
+  let body = `  ${v(snake(c.name))} <span class="k">a</span> :${c.name}`;
+  if (m.labelOn && m.label) body += ` ;\n    rdfs:label ${v(m.label)}`;
+  m.attrs.forEach(a => { const at = attrById(c, a.attr); if (at) body += ` ;\n    :${at.name} ${v(a.col)}`; });
+  m.rels.forEach(x => { const rel = relById(x.rel), t = cls(x.target); if (rel && t) body += ` ;\n    :${rel.name} ${v(snake(t.name) + '_iri')}`; });
+  body += ' .';
+  let where = `  <span class="k">BIND</span>(<span class="k">TEMPLATE</span>(<span class="s">"${P}:data:${c.name}:{${m.primary.join('}_{')}}"</span>) <span class="k">AS</span> ${v(snake(c.name))})`;
+  m.rels.forEach(x => { const t = cls(x.target); if (t) where += `\n  <span class="k">BIND</span>(<span class="k">TEMPLATE</span>(<span class="s">"${P}:data:${t.name}:{${x.col}}"</span>) <span class="k">AS</span> ${v(snake(t.name) + '_iri')})`; });
+  return `<span class="k">PREFIX</span> : <span class="i">&lt;${P}:model:&gt;</span>\n\n<span class="k">MAPPING</span> <span class="i">&lt;urn:${P}:${r.name}-${c.name}&gt;</span>\n<span class="k">FROM</span> CSV {\n}\n<span class="k">TO</span> {\n${body}\n}\n<span class="k">WHERE</span> {\n${where}\n}`;
+}
+
+/* ================= 렌더링 ================= */
+const R = 46;
+function renderAll() {
+  renderCanvas(); renderSide(); renderVoice(); renderChrome();
+  if (UI.view === 'list') renderList();
+  if (UI.tab === 'mapping') renderMapView();
+  if (window.Guide) Guide.refresh();
+}
+function fitView() {
+  const w = $('#canvasWrap'); const W = w.clientWidth, H = w.clientHeight;
+  const pts = S.classes.map(c => [c.x - R - 20, c.y - R - 10, c.x + R + 20, c.y + R + 10]).concat(S.resources.map(r => [r.x - 60, r.y - 30, r.x + 60, r.y + 40]));
+  if (!pts.length || !W) return;
+  const x0 = Math.min(...pts.map(p => p[0])), y0 = Math.min(...pts.map(p => p[1])), x1 = Math.max(...pts.map(p => p[2])), y1 = Math.max(...pts.map(p => p[3]));
+  const padT = 60, pad = 30;
+  const k = Math.max(.4, Math.min(1.1, (W - pad * 2) / (x1 - x0), (H - padT - pad) / (y1 - y0)));
+  UI.k = k; UI.vx = (W - (x1 - x0) * k) / 2 - x0 * k; UI.vy = padT + (H - padT - pad - (y1 - y0) * k) / 2 - y0 * k;
+  applyView();
+}
+function applyView() { $('#world').setAttribute('transform', `translate(${UI.vx},${UI.vy}) scale(${UI.k})`); }
+
+function quad(a, b, bend) {
+  const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+  const cx = (a.x + b.x) / 2 - dy / len * bend, cy = (a.y + b.y) / 2 + dx / len * bend;
+  return { cx, cy, len };
+}
+function trimTo(p, toward, r) { const dx = toward.x - p.x, dy = toward.y - p.y, d = Math.hypot(dx, dy) || 1; return { x: p.x + dx / d * r, y: p.y + dy / d * r }; }
+
+function renderCanvas() {
+  const g = $('#world'); const pend = !!S.pending; const q = UI.search.trim().toLowerCase();
+  const hit = n => !q || n.toLowerCase().includes(q);
+  let h = '';
+  // 관계 엣지
+  const pairCount = {};
+  S.rels.forEach(r => r.pairs.forEach(p => {
+    const a = cls(p.s), b = cls(p.t); if (!a || !b) return;
+    const key = [p.s, p.t].sort().join('|'); const idx = pairCount[key] = (pairCount[key] || 0) + 1;
+    const selected = UI.sel && UI.sel.type === 'rel' && UI.sel.id === r.id;
+    let path, lx, ly;
+    if (a === b) {
+      path = `M${a.x + R * .6},${a.y - R * .8} C${a.x + 120},${a.y - 150} ${a.x + 150},${a.y + 20} ${a.x + R},${a.y + 10}`; lx = a.x + 120; ly = a.y - 70;
+    } else {
+      const sign = p.s < p.t ? 1 : -1;
+      const bend = (idx === 1 ? 0.18 : idx % 2 ? 0.18 + idx * .1 : -(0.1 + idx * .1)) * sign;
+      const { cx, cy, len } = quad(a, b, bend * Math.min(Math.hypot(b.x - a.x, b.y - a.y), 400));
+      const s = trimTo(a, { x: cx, y: cy }, R + 1), e = trimTo(b, { x: cx, y: cy }, R + 4);
+      path = `M${s.x},${s.y} Q${cx},${cy} ${e.x},${e.y}`;
+      lx = .25 * s.x + .5 * cx + .25 * e.x; ly = .25 * s.y + .5 * cy + .25 * e.y;
+    }
+    const dim = q && !(hit(r.name) || hit(a.name) || hit(b.name));
+    h += `<g class="edge${selected ? ' sel' : ''}" data-rel="${r.id}" style="${dim ? 'opacity:.2' : ''}"><path class="l" d="${path}" marker-end="url(#${selected ? 'arrS' : 'arr'})"/><path class="hit" d="${path}"/><text x="${lx}" y="${ly}">${esc(r.name)}</text></g>`;
+  }));
+  // 상속 엣지
+  S.classes.forEach(c => { const p = c.parent && cls(c.parent); if (!p) return;
+    const s = trimTo(c, p, R + 1), e = trimTo(p, c, R + 6);
+    h += `<g class="edge sub"><path class="l" d="M${s.x},${s.y} L${e.x},${e.y}" marker-end="url(#arrH)"/><text x="${(s.x + e.x) / 2}" y="${(s.y + e.y) / 2}">subClassOf</text></g>`; });
+  // 매핑 엣지
+  S.mappings.forEach(m => {
+    const r = res(m.res), c = cls(m.cls); if (!r || !c) return;
+    const a = { x: r.x, y: r.y - 6 };
+    const { cx, cy } = quad(a, c, -0.25 * Math.min(Math.hypot(c.x - a.x, c.y - a.y), 300));
+    const s = trimTo(a, { x: cx, y: cy }, 22), e = trimTo(c, { x: cx, y: cy }, R + 4);
+    const lx = .25 * s.x + .5 * cx + .25 * e.x, ly = .25 * s.y + .5 * cy + .25 * e.y;
+    const lab = `${r.name} - ${c.name}`;
+    const w = lab.length * 6.6 + 14;
+    h += `<g class="mapedge${m.pending ? ' pending' : ''}" data-map="${m.id}"><path d="M${s.x},${s.y} Q${cx},${cy} ${e.x},${e.y}" marker-end="url(#${m.pending ? 'arrP' : 'arrM'})"/>${m.pending ? `<rect x="${lx - w / 2}" y="${ly - 10}" width="${w}" height="20" rx="3"/>` : ''}<text x="${lx}" y="${ly}">${esc(lab)}</text></g>`;
+  });
+  // 클래스 노드
+  S.classes.forEach(c => {
+    const selected = UI.sel && UI.sel.type === 'class' && UI.sel.id === c.id;
+    const mapped = S.mappings.some(m => m.cls === c.id && !m.pending);
+    const inPending = pend && S.mappings.some(m => m.cls === c.id && m.pending);
+    const fill = pend ? '#fff' : c.color;
+    const op = pend ? 1 : selected ? 1 : .62;
+    const dim = q && !hit(c.name);
+    h += `<g class="node${selected ? ' sel' : ''}${dim ? ' dim' : ''}" data-cls="${c.id}" transform="translate(${c.x},${c.y})">
+      <circle r="${R}" fill="${fill}" fill-opacity="${op}" class="b" ${inPending ? 'stroke="#1C1F26" stroke-width="3"' : ''}/>
+      ${mapped ? `<g transform="translate(0,-18)" stroke="#1C1F26" stroke-width="1.6" fill="none"><path d="M-6,-5 v10 M-6,0 h5"/><rect x="0" y="-7" width="5" height="5" fill="#1C1F26"/><rect x="0" y="2" width="5" height="5" fill="#1C1F26"/></g>` : ''}
+      <text class="n" y="${mapped ? 4 : 0}">${esc(c.name.length > 13 ? c.name.slice(0, 12) + '…' : c.name)}</text>
+      ${c.attrs.length ? `<g class="badge" transform="translate(${R * .72},${R * .72})"><rect x="-10" y="-10" width="20" height="20" rx="3"/><text>${c.attrs.length}</text></g>` : ''}
+    </g>`;
+  });
+  // 리소스
+  S.resources.forEach(r => {
+    const selected = UI.sel && UI.sel.type === 'res' && UI.sel.id === r.id;
+    const dim = q && !hit(r.name);
+    const nm = r.name.length > 14 ? r.name.slice(0, 13) + '…' : r.name;
+    h += `<g class="res${selected ? ' sel' : ''}${dim ? ' dim' : ''}" data-res="${r.id}" transform="translate(${r.x},${r.y})">
+      <rect x="-40" y="-26" width="80" height="62" fill="transparent"/>
+      <path class="f" d="M-13,-21 h16 l10,10 v30 h-26 z M3,-21 v10 h10"/>
+      <text y="31">${esc(nm)}</text></g>`;
+  });
+  g.innerHTML = h;
+  applyView();
+  $('#emptyHint').style.display = S.classes.length || S.resources.length ? 'none' : 'grid';
+}
+
+function renderChrome() {
+  $('#tbUndo').disabled = !hist.past.length; $('#tbRedo').disabled = !hist.future.length;
+  $('#tbDelete').disabled = !UI.sel;
+  $('#projName').textContent = S.project; $('#modelName').textContent = S.project;
+  const pend = !!S.pending;
+  $('#banner').classList.toggle('on', pend);
+  $('#legend').classList.toggle('on', pend);
+  const n = pendingCount();
+  $('#vbtnN').style.display = n ? 'grid' : 'none'; $('#vbtnN').textContent = n;
+  $('#vBadge span').textContent = n;
+  $$('.tabs-top button').forEach(b => b.classList.toggle('on', b.dataset.tab === UI.tab));
+  $('#mapView').classList.toggle('on', UI.tab === 'mapping');
+  $('#secMappings').style.display = UI.tab === 'mapping' ? '' : 'none';
+  $('#sideFill').style.display = UI.tab === 'mapping' ? '' : 'none';
+  $$('.seg button').forEach(b => b.classList.toggle('on', b.dataset.view === UI.view));
+  $('#listView').classList.toggle('on', UI.view === 'list');
+}
+
+function renderSide() {
+  const f = ($('#sideSearch').value || '').toLowerCase();
+  $('#qCount').textContent = S.questions.length;
+  $('#qList').innerHTML = (S.questions.length ? '' : '<div class="side-empty">역량 질문(Competency Questions)을 추가해 모델의 합격 기준으로 삼습니다.</div>') +
+    S.questions.filter(q => q.toLowerCase().includes(f)).map((q, i) => `<div class="item" title="${esc(q)}"><span style="color:var(--muted)">Q${i + 1}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(q)}</span><button class="x" data-delq="${i}" aria-label="삭제">${ICON.x}</button></div>`).join('');
+  $('#rCount').textContent = S.resources.length;
+  $('#rList').innerHTML = S.resources.filter(r => r.name.toLowerCase().includes(f)).map(r => `<div class="item" data-sres="${r.id}">${ICON.file}<span>${esc(r.name)}</span></div>`).join('');
+  // 매핑 트리
+  let t = '';
+  S.resources.forEach(r => {
+    const ms = S.mappings.filter(m => m.res === r.id);
+    t += `<div class="t" data-tres="${r.id}">${ICON.file}${esc(r.name)}</div>`;
+    ms.forEach(m => { const c = cls(m.cls); if (!c) return;
+      t += `<div class="t l1">${ICON.circle}${esc(c.name)}</div><div class="t l2${UI.mapSel === m.id ? ' on' : ''}" data-tmap="${m.id}">${ICON.map}${esc(r.name)} - ${esc(c.name)}${m.pending ? ' <span style="color:var(--blue);font-size:10px">제안</span>' : ''}</div>`; });
+  });
+  $('#mapTree').innerHTML = t || '<div class="side-empty" style="padding-left:6px">아직 매핑이 없습니다.</div>';
+}
+
+function renderVoice() {
+  const log = S.voiceLog;
+  $('#vLog').innerHTML = `<div class="vintro">Stardog Voicebox for Designer makes modifying your data model as simple as asking a question. Go ahead and ask…</div>` +
+    log.map(m => m.sep ? `<div class="vsep"><span>${esc(m.sep)}</span></div>` :
+      m.who === 'me' ? `<div class="vmsg me"><span>${esc(m.text)}</span></div>` :
+      `<div class="vmsg"><span class="av"><svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:#3B4250"><path d="M4 9a3 3 0 0 1 3-3h7l3-2v4a3 3 0 0 1 3 3v3a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/></svg></span><span>${m.html || esc(m.text)}</span></div>`).join('');
+  $('#vLog').scrollTop = 1e6;
+}
+function openVoice(on = true) { $('#voice').classList.toggle('on', on); }
+
+function renderList() {
+  const rows = S.classes.map(c => {
+    const out = []; S.rels.forEach(r => r.pairs.filter(p => p.s === c.id).forEach(p => out.push(`${r.name} → ${cls(p.t)?.name}`)));
+    const ms = S.mappings.filter(m => m.cls === c.id).map(m => res(m.res)?.name);
+    return `<tr><td><span class="dot" style="background:${c.color}"></span><b>${esc(c.name)}</b><div style="color:var(--muted);font-size:11.5px;margin-top:3px">${esc(c.desc)}</div></td><td>${c.attrs.map(a => `${esc(a.name)} <span style="color:var(--muted)">${a.type}</span>`).join('<br>') || '—'}</td><td>${out.map(esc).join('<br>') || '—'}</td><td>${ms.map(esc).join('<br>') || '—'}</td></tr>`;
+  }).join('');
+  $('#listView').innerHTML = `<table><thead><tr><th>클래스</th><th>속성 (Attributes)</th><th>관계 (Relationships)</th><th>매핑된 리소스</th></tr></thead><tbody>${rows || '<tr><td colspan="4" style="color:var(--muted)">클래스가 없습니다.</td></tr>'}</tbody></table>`;
+}
+
+/* ================= 캔버스 상호작용 ================= */
+(function canvasEvents() {
+  const svg = $('#svg'); let drag = null;
+  const toWorld = (cx, cy) => { const b = svg.getBoundingClientRect(); return { x: (cx - b.left - UI.vx) / UI.k, y: (cy - b.top - UI.vy) / UI.k }; };
+  svg.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    closeCtx();
+    const n = e.target.closest('[data-cls],[data-res]');
+    if (n) {
+      const obj = n.dataset.cls ? cls(n.dataset.cls) : res(n.dataset.res);
+      const w = toWorld(e.clientX, e.clientY);
+      drag = { obj, ox: w.x - obj.x, oy: w.y - obj.y, moved: false, sx: e.clientX, sy: e.clientY, el: n };
+    } else {
+      drag = { pan: true, sx: e.clientX, sy: e.clientY, vx: UI.vx, vy: UI.vy, moved: false };
+      svg.classList.add('panning');
+    }
+    svg.setPointerCapture(e.pointerId);
+  });
+  svg.addEventListener('pointermove', e => {
+    if (!drag) return;
+    if (Math.abs(e.clientX - drag.sx) + Math.abs(e.clientY - drag.sy) > 4) drag.moved = true;
+    if (!drag.moved) return;
+    if (drag.pan) { UI.vx = drag.vx + e.clientX - drag.sx; UI.vy = drag.vy + e.clientY - drag.sy; applyView(); return; }
+    const w = toWorld(e.clientX, e.clientY); drag.obj.x = w.x - drag.ox; drag.obj.y = w.y - drag.oy; renderCanvas();
+  });
+  svg.addEventListener('pointerup', e => {
+    svg.classList.remove('panning');
+    const d = drag; drag = null; if (!d) return;
+    if (d.moved && !d.pan) { saving(); return; }
+    if (d.moved) return;
+    // 클릭으로 처리
+    const t = document.elementFromPoint(e.clientX, e.clientY);
+    canvasClick(t, e.clientX, e.clientY);
+  });
+  svg.addEventListener('dblclick', e => {
+    const n = e.target.closest('[data-cls]'); if (n) { openClassDetail(n.dataset.cls); return; }
+    const r = e.target.closest('[data-res]'); if (r) openResourceDetail(r.dataset.res);
+  });
+  svg.addEventListener('wheel', e => {
+    e.preventDefault();
+    const b = svg.getBoundingClientRect(); const mx = e.clientX - b.left, my = e.clientY - b.top;
+    const k = Math.min(2.2, Math.max(.35, UI.k * (e.deltaY < 0 ? 1.1 : 1 / 1.1)));
+    UI.vx = mx - (mx - UI.vx) * k / UI.k; UI.vy = my - (my - UI.vy) * k / UI.k; UI.k = k; applyView();
+  }, { passive: false });
+})();
+
+function canvasClick(t, x, y) {
+  const n = t && t.closest && t.closest('[data-cls]'), r = t && t.closest && t.closest('[data-res]'), ed = t && t.closest && t.closest('[data-rel]');
+  if (n) { UI.sel = { type: 'class', id: n.dataset.cls }; renderAll(); classMenu(n.dataset.cls); return; }
+  if (r) { UI.sel = { type: 'res', id: r.dataset.res }; renderAll(); resourceMenu(r.dataset.res); return; }
+  if (ed) { UI.sel = { type: 'rel', id: ed.dataset.rel }; renderAll(); openRelDetail(ed.dataset.rel); return; }
+  if (UI.sel) { UI.sel = null; renderAll(); }
+}
+function screenOf(obj, dy = 0) {
+  const b = $('#svg').getBoundingClientRect();
+  return { x: b.left + UI.vx + obj.x * UI.k, y: b.top + UI.vy + (obj.y + dy) * UI.k };
+}
+
+/* 컨텍스트 메뉴 */
+function closeCtx() { $$('.ctx').forEach(m => m.remove()); }
+function showCtx(x, y, items, tag) {
+  closeCtx();
+  const m = el(`<div class="ctx">${tag ? `<span class="tag">${esc(tag)}</span>` : ''}</div>`);
+  items.forEach(it => {
+    if (it.hd) { m.appendChild(el(`<div class="hd">${esc(it.hd)}</div>`)); return; }
+    const b = el(`<button class="${it.danger ? 'danger' : ''}" data-ctx="${esc(it.key || it.label)}">${esc(it.label)}</button>`);
+    b.onclick = () => { closeCtx(); it.run(); }; m.appendChild(b);
+  });
+  document.body.appendChild(m);
+  const W = innerWidth, H = innerHeight, r = m.getBoundingClientRect();
+  m.style.left = Math.min(x, W - r.width - 8) + 'px'; m.style.top = Math.min(y, H - r.height - 8) + 'px';
+}
+function classMenu(id) {
+  const c = cls(id); const p = screenOf(c, -R * .4);
+  showCtx(p.x + R * UI.k * .5, p.y, [
+    { label: 'See details', run: () => openClassDetail(id) },
+    { label: 'Delete', danger: true, run: () => commit(() => { deleteClass(id); UI.sel = null; }) }
+  ], c.name);
+}
+function resourceMenu(id) {
+  const r = res(id); const p = screenOf(r, -10);
+  const ms = S.mappings.filter(m => m.res === id);
+  const items = [{ label: 'See details', run: () => openResourceDetail(id) }, { hd: 'Mappings' }];
+  ms.forEach(m => items.push({ label: '↳ ' + (cls(m.cls)?.name || ''), key: 'map:' + m.id, run: () => { switchTab('mapping'); UI.mapSel = m.id; renderAll(); } }));
+  items.push({ label: 'New Mapping', run: () => openNewMapping([id]) }, { label: 'View preview', run: () => openPreview(id) }, { label: 'Delete resource', danger: true, run: () => commit(() => { deleteResource(id); UI.sel = null; }) });
+  showCtx(p.x + 22, p.y, items, r.name);
+}
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.ctx') && !e.target.closest('#svg')) closeCtx(); if (!e.target.closest('.combo')) $$('.combo.open').forEach(c => c.classList.remove('open')); }, true);
+
+function switchTab(t) { UI.tab = t; closeCtx(); if (t === 'mapping') openVoice(false); if (t === 'mapping' && !UI.mapSel && S.mappings[0]) UI.mapSel = null; renderAll(); }
+
+/* ================= 콤보박스 ================= */
+function combo({ name, placeholder = '선택', options, value = '', allowCreate = false, multi = false, chips = false, onPick, filterPh = 'Filter or create...' }) {
+  const box = el(`<div class="combo" data-combo="${name}"></div>`);
+  let sel = multi ? [...(value || [])] : value;
+  const opts = () => (typeof options === 'function' ? options() : options).map(o => typeof o === 'string' ? { v: o, l: o } : o);
+  const labelOf = v => (opts().find(o => o.v === v) || { l: v }).l;
+  const head = () => {
+    if (chips) return `<div class="chips combo-btn" style="height:auto;background:#fff">${sel.length ? sel.map(v => `<span class="chip">${esc(labelOf(v))}<button data-rm="${esc(v)}" aria-label="제거">×</button></span>`).join('') : `<span class="ph">${esc(placeholder)}</span>`}</div>`;
+    return `<button type="button" class="combo-btn">${sel && !multi ? `<span class="v">${esc(labelOf(sel))}</span>` : `<span class="ph">${esc(placeholder)}</span>`}${ICON.caret}</button>`;
+  };
+  const draw = () => {
+    box.innerHTML = head() + `<div class="combo-pop"><label class="cs">${ICON.search}<input placeholder="${esc(filterPh)}"></label><ul></ul></div>`;
+    const inp = $('input', box), ul = $('ul', box);
+    const list = () => {
+      const f = inp.value.trim(); const fl = f.toLowerCase();
+      const os = opts().filter(o => !(multi && sel.includes(o.v)) && o.l.toLowerCase().includes(fl));
+      let h = os.map(o => `<li data-v="${esc(o.v)}">${esc(o.l)}</li>`).join('');
+      if (allowCreate && f && !opts().some(o => o.l.toLowerCase() === fl)) h += `<li class="create" data-new="${esc(f)}">⊕ Create "${esc(f)}"</li>`;
+      ul.innerHTML = h || '<li class="none">No Results</li>';
+    };
+    inp.oninput = list; list();
+    inp.onkeydown = e => { if (e.key === 'Enter') { const li = $('li[data-v],li[data-new]', ul); if (li) li.click(); e.preventDefault(); } if (e.key === 'Escape') box.classList.remove('open'); };
+    ul.onclick = e => {
+      const li = e.target.closest('li'); if (!li || li.classList.contains('none')) return;
+      const v = li.dataset.new || li.dataset.v;
+      if (multi) { sel.push(v); draw(); } else { sel = v; box.classList.remove('open'); draw(); }
+      onPick && onPick(multi ? sel : v, !!li.dataset.new);
+    };
+    $('.combo-btn', box).onclick = e => {
+      const rm = e.target.closest('[data-rm]');
+      if (rm) { sel = sel.filter(x => x !== rm.dataset.rm); draw(); onPick && onPick(sel); e.stopPropagation(); return; }
+      const open = !box.classList.contains('open');
+      $$('.combo.open').forEach(c => c.classList.remove('open'));
+      box.classList.toggle('open', open); if (open) { inp.value = ''; list(); setTimeout(() => inp.focus(), 0); }
+    };
+  };
+  draw();
+  box.getValue = () => sel; box.setValue = v => { sel = v; draw(); };
+  return box;
+}
+
+/* ================= 드로어 ================= */
+function openDrawer(html, { dim = false } = {}) {
+  closeCtx();
+  const d = $('#drawer'); d.innerHTML = html; d.classList.add('on'); d.classList.toggle('float', dim);
+  $('#dim').classList.toggle('on', dim);
+  $$('[data-close]', d).forEach(b => b.onclick = closeDrawer);
+  return d;
+}
+function closeDrawer() { $('#drawer').classList.remove('on'); $('#dim').classList.remove('on'); $('#drawer').innerHTML = ''; }
+$('#dim').onclick = closeDrawer;
+function tabsHtml(tabs, on) { return `<div class="dtabs">${tabs.map(t => `<button data-tab2="${t}" class="${t === on ? 'on' : ''}">${t}</button>`).join('')}</div>`; }
+function bindTabs(d, render) { $$('[data-tab2]', d).forEach(b => b.onclick = () => { $$('[data-tab2]', d).forEach(x => x.classList.toggle('on', x === b)); render(b.dataset.tab2); }); }
+
+/* 속성 편집기 (Create Class / Class Detail 공용) */
+function attrEditor(host, c, onChange) {
+  const draw = () => {
+    host.innerHTML = `<div class="fl" style="font-weight:500;color:var(--ink)">Attributes</div>
+      <div class="attrhead"><span>Attribute Name</span><span>Data Type</span><span>Rule</span><span></span></div>
+      <div class="attradd"><span id="anSlot"></span><span id="atSlot"></span><span></span><button class="addlink" id="aAdd">Add</button></div>
+      ${c.attrs.map(a => `<div class="attrrow"><span class="nm">${esc(a.name)}</span><span>${a.type}</span><select data-rule="${a.id}" aria-label="규칙">${RULES.map(r => `<option value="${r[0]}" ${a.rule === r[0] ? 'selected' : ''}>${r[1]}</option>`).join('')}</select><button class="del" data-del="${a.id}" aria-label="삭제">${ICON.x}</button></div>`).join('')}`;
+    let nm = '', ty = 'string';
+    const add = $('#aAdd', host);
+    const upd = () => add.classList.toggle('on', !!nm);
+    const used = new Set(S.classes.flatMap(x => x.attrs.map(a => a.name)));
+    $('#anSlot', host).appendChild(combo({ name: 'attrName', placeholder: '', options: () => [...used].filter(n => !c.attrs.some(a => a.name === n)), allowCreate: true, onPick: v => { nm = v; upd(); } }));
+    const tc = combo({ name: 'attrType', placeholder: 'string', value: 'string', options: XSD, filterPh: 'Search', onPick: v => ty = v });
+    $('#atSlot', host).appendChild(tc);
+    add.onclick = () => { if (!nm) return; onChange(() => addAttr(c, nm, ty)); draw(); };
+    $$('[data-del]', host).forEach(b => b.onclick = () => { onChange(() => c.attrs = c.attrs.filter(a => a.id !== b.dataset.del)); draw(); });
+    $$('[data-rule]', host).forEach(s => s.onchange = () => { onChange(() => attrById(c, s.dataset.rule).rule = s.value); });
+  };
+  draw();
+}
+
+/* Create Class */
+function openCreateClass() {
+  const draft = { name: '', desc: '', color: COLORS[S.classes.length % COLORS.length], attrs: [], parent: null };
+  const d = openDrawer(`<div class="dr-h"><h3>Create Class</h3><button class="x" data-close aria-label="닫기">×</button></div>
+    ${tabsHtml(['Basic', 'Hierarchy', 'Relationships', 'Attributes', 'Geospatial'], 'Basic')}
+    <div class="dr-b" id="ccBody"></div>
+    <div class="dr-f"><button class="btn" data-close>Cancel</button><button class="btn green soft" id="ccCreate">Create</button></div>`, { dim: true });
+  const body = $('#ccBody', d), btn = $('#ccCreate', d);
+  const sync = () => btn.classList.toggle('soft', !draft.name.trim());
+  const render = tab => {
+    if (tab === 'Basic') {
+      body.innerHTML = `<label class="fl" for="cc-name">Class Name</label><div class="frow"><input class="fi" id="cc-name" placeholder="New Class" autocomplete="off"><span class="cdot" id="ccDot" title="색 바꾸기" style="background:${draft.color}"></span></div>
+        <label class="fl" for="cc-desc">Description</label><textarea class="fi" id="cc-desc"></textarea>`;
+      const n = $('#cc-name', body), ds = $('#cc-desc', body);
+      n.value = draft.name; ds.value = draft.desc;
+      n.oninput = () => { draft.name = n.value; sync(); $('.err', body)?.remove(); };
+      ds.oninput = () => draft.desc = ds.value;
+      n.onkeydown = e => { if (e.key === 'Enter') btn.click(); };
+      $('#ccDot', body).onclick = e => { draft.color = COLORS[(COLORS.indexOf(draft.color) + 1) % COLORS.length]; e.target.style.background = draft.color; };
+      setTimeout(() => n.focus(), 30);
+    } else if (tab === 'Hierarchy') {
+      body.innerHTML = `<label class="fl">Parent class (subClassOf)</label><div id="hSlot"></div><p class="note" style="margin-top:14px">상위 클래스를 지정하면 이 클래스는 상위 클래스의 하위 개념이 됩니다. 예: Director ⊂ Person</p>`;
+      $('#hSlot', body).appendChild(combo({ name: 'parent', placeholder: '선택 안 함', value: draft.parent, options: () => S.classes.map(c => ({ v: c.id, l: c.name })), onPick: v => draft.parent = v }));
+    } else if (tab === 'Attributes') {
+      attrEditor(body, draft, fn => fn());
+    } else {
+      body.innerHTML = `<p class="note">${tab} 설정은 클래스를 만든 뒤 Class Detail에서 할 수 있습니다.</p>`;
+    }
+  };
+  bindTabs(d, render); render('Basic'); sync();
+  btn.onclick = () => {
+    const name = draft.name.trim().replace(/\s+/g, '');
+    if (!name) { const row = $('.frow', body); if (row && !$('.err', row)) row.appendChild(el('<span class="err">Name is required.</span>')); return; }
+    if (clsByName(name)) { toast(`"${esc(name)}" 클래스가 이미 있습니다.`); return; }
+    let made;
+    commit(() => { made = addClass(name, draft.desc.trim(), { color: draft.color, parent: draft.parent, attrs: draft.attrs }); UI.sel = { type: 'class', id: made.id }; });
+    closeDrawer();
+  };
+}
+
+/* Class Detail */
+function openClassDetail(id, tab = 'Basic') {
+  const c = cls(id); if (!c) return;
+  UI.sel = { type: 'class', id }; renderCanvas(); renderChrome();
+  const d = openDrawer(`<div class="dr-h"><h3>Class Detail</h3><button class="x" data-close aria-label="닫기">×</button></div>
+    ${tabsHtml(['Basic', 'Hierarchy', 'Relationships', 'Attributes', 'Geospatial'], tab)}
+    <div class="dr-b" id="cdBody"></div>
+    <div class="dr-f" style="justify-content:flex-start"><button class="btn red" id="cdDel">Delete</button></div>`);
+  const body = $('#cdBody', d);
+  const live = fn => commit(fn);
+  const render = t => {
+    const c = cls(id); if (!c) return closeDrawer();
+    if (t === 'Basic') {
+      body.innerHTML = `<label class="fl" for="cd-name">Class Name</label><div class="frow"><input class="fi" id="cd-name" autocomplete="off"><span class="cdot" id="cdDot" style="background:${c.color}" title="색 바꾸기"></span></div>
+        <label class="fl" for="cd-desc">Description</label><textarea class="fi" id="cd-desc"></textarea>
+        <div class="note">IRI <code>tag:stardog:designer:${esc(S.project)}:model:${esc(c.name)}</code></div>`;
+      const n = $('#cd-name', body), ds = $('#cd-desc', body); n.value = c.name; ds.value = c.desc;
+      n.onchange = () => { const v = n.value.trim().replace(/\s+/g, ''); if (v && v !== c.name && !clsByName(v)) live(() => c.name = v); else n.value = c.name; };
+      ds.onchange = () => live(() => c.desc = ds.value);
+      $('#cdDot', body).onclick = () => live(() => c.color = COLORS[(COLORS.indexOf(c.color) + 1) % COLORS.length]) || render('Basic');
+    } else if (t === 'Hierarchy') {
+      body.innerHTML = `<label class="fl">Parent class (subClassOf)</label><div id="hSlot"></div><div style="margin-top:12px" id="hClr"></div>
+        <div class="fl" style="margin-top:18px">Subclasses</div><div class="note">${S.classes.filter(x => x.parent === id).map(x => esc(x.name)).join(', ') || '없음'}</div>`;
+      $('#hSlot', body).appendChild(combo({ name: 'parent', placeholder: '선택 안 함', value: c.parent, options: () => S.classes.filter(x => x.id !== id).map(x => ({ v: x.id, l: x.name })), onPick: v => live(() => c.parent = v) }));
+      if (c.parent) { const b = el('<button class="btn ghost">상위 클래스 해제</button>'); b.onclick = () => { live(() => c.parent = null); render('Hierarchy'); }; $('#hClr', body).appendChild(b); }
+    } else if (t === 'Relationships') {
+      const rows = [];
+      S.rels.forEach(r => r.pairs.forEach(p => { if (p.s === id) rows.push([r, '→', cls(p.t)]); if (p.t === id && p.s !== id) rows.push([r, '←', cls(p.s)]); }));
+      body.innerHTML = `<div class="fl" style="font-weight:500;color:var(--ink)">Relationships</div>
+        <table class="tbl" style="margin-top:6px"><thead><tr><th>Relationship Name</th><th>Direction</th><th>Class</th></tr></thead><tbody>
+        ${rows.map(([r, dir, o]) => `<tr><td><span class="lnk" data-openrel="${r.id}">${esc(r.name)}</span></td><td>${dir === '→' ? 'outgoing →' : '← incoming'}</td><td>${esc(o?.name || '')}</td></tr>`).join('') || '<tr><td colspan="3" style="color:var(--muted)">연결된 관계가 없습니다.</td></tr>'}</tbody></table>
+        <div class="fl" style="margin-top:18px">이 클래스에서 새 관계 추가</div>
+        <div class="two"><input class="fi" id="nrName" placeholder="relationship name"><div id="nrT"></div></div><button class="btn" id="nrAdd">Add</button>`;
+      $$('[data-openrel]', body).forEach(s => s.onclick = () => openRelDetail(s.dataset.openrel));
+      let tgt = '';
+      $('#nrT', body).appendChild(combo({ name: 'nrTarget', placeholder: 'Target class', options: () => S.classes.map(x => ({ v: x.id, l: x.name })), onPick: v => tgt = v }));
+      $('#nrAdd', body).onclick = () => { const nm = $('#nrName', body).value.trim(); if (!nm || !tgt) return toast('이름과 대상 클래스를 고르세요.'); live(() => addRel(nm, [{ s: id, t: tgt }])); render('Relationships'); };
+    } else if (t === 'Attributes') {
+      attrEditor(body, c, fn => live(fn));
+    } else {
+      body.innerHTML = `<div class="tog${c.geo ? ' on' : ''}" id="geoT"><i></i>이 클래스는 위치(지오메트리)를 가집니다</div><p class="note" style="margin-top:12px">켜면 WKT 형식의 위치 속성을 매핑해 지도 기반 질의(geof:within 등)에 쓸 수 있습니다.</p>`;
+      $('#geoT', body).onclick = () => { live(() => c.geo = !c.geo); render('Geospatial'); };
+    }
+  };
+  bindTabs(d, render); render(tab);
+  $('#cdDel', d).onclick = () => { commit(() => { deleteClass(id); UI.sel = null; }); closeDrawer(); };
+}
+
+/* Create / Detail Relationship */
+function relForm(d, draft) {
+  const body = $('#rfBody', d);
+  const draw = () => {
+    const pairs = draft.src.flatMap(s => draft.tgt.map(t => ({ s, t })));
+    body.innerHTML = `<label class="fl" for="cr-name">Relationship Name</label><input class="fi" id="cr-name" placeholder="New Relationship" autocomplete="off">
+      <label class="fl" for="cr-desc">Description</label><textarea class="fi" id="cr-desc"></textarea>
+      <div class="two"><div><label class="fl">Source</label><div id="srcSlot"></div><ul class="chiplist">${draft.src.map(s => `<li>${esc(cls(s)?.name)}<button data-rs="${s}" aria-label="제거">×</button></li>`).join('')}</ul></div>
+      <div><label class="fl">Target</label><div id="tgtSlot"></div><ul class="chiplist">${draft.tgt.map(s => `<li>${esc(cls(s)?.name)}<button data-rt="${s}" aria-label="제거">×</button></li>`).join('')}</ul></div></div>
+      ${pairs.length ? `<table class="tbl"><thead><tr><th>Source</th><th>Target</th></tr></thead><tbody>${pairs.map(p => `<tr><td>${esc(cls(p.s)?.name)}</td><td>${esc(cls(p.t)?.name)}</td></tr>`).join('')}</tbody></table>` : ''}`;
+    const n = $('#cr-name', body), ds = $('#cr-desc', body); n.value = draft.name; ds.value = draft.desc;
+    n.oninput = () => draft.name = n.value; ds.oninput = () => draft.desc = ds.value;
+    const opt = () => S.classes.map(c => ({ v: c.id, l: c.name }));
+    $('#srcSlot', body).appendChild(combo({ name: 'source', placeholder: '', options: () => opt().filter(o => !draft.src.includes(o.v)), onPick: v => { draft.src.push(v); draw(); } }));
+    $('#tgtSlot', body).appendChild(combo({ name: 'target', placeholder: '', options: () => opt().filter(o => !draft.tgt.includes(o.v)), onPick: v => { draft.tgt.push(v); draw(); } }));
+    $$('[data-rs]', body).forEach(b => b.onclick = () => { draft.src = draft.src.filter(x => x !== b.dataset.rs); draw(); });
+    $$('[data-rt]', body).forEach(b => b.onclick = () => { draft.tgt = draft.tgt.filter(x => x !== b.dataset.rt); draw(); });
+  };
+  draw();
+}
+function openCreateRel(prefSrc) {
+  if (S.classes.length < 1) return toast('먼저 클래스를 만드세요.');
+  const draft = { name: '', desc: '', src: prefSrc ? [prefSrc] : [], tgt: [] };
+  const d = openDrawer(`<div class="dr-h"><h3>Create Relationship</h3><button class="x" data-close aria-label="닫기">×</button></div><div class="dr-b" id="rfBody"></div>
+    <div class="dr-f"><button class="btn" data-close>Cancel</button><button class="btn green" id="crCreate">Create</button></div>`, { dim: true });
+  relForm(d, draft);
+  $('#crCreate', d).onclick = () => {
+    const name = draft.name.trim().replace(/\s+/g, '');
+    if (!name) return toast('Relationship Name을 입력하세요.');
+    if (!draft.src.length || !draft.tgt.length) return toast('Source와 Target을 하나 이상 고르세요.');
+    commit(() => { const r = addRel(name, draft.src.flatMap(s => draft.tgt.map(t => ({ s, t }))), draft.desc.trim()); UI.sel = { type: 'rel', id: r.id }; });
+    closeDrawer();
+  };
+}
+function openRelDetail(id) {
+  const r = relById(id); if (!r) return;
+  UI.sel = { type: 'rel', id }; renderCanvas(); renderChrome();
+  const draft = { name: r.name, desc: r.desc, src: [...new Set(r.pairs.map(p => p.s))], tgt: [...new Set(r.pairs.map(p => p.t))] };
+  const d = openDrawer(`<div class="dr-h"><h3>Relationship Detail</h3><button class="x" data-close aria-label="닫기">×</button></div><div class="dr-b" id="rfBody"></div>
+    <div class="dr-f"><button class="btn red" id="rdDel">Delete</button><span class="sp"></span><button class="btn green" id="rdSave">Save</button></div>`);
+  relForm(d, draft);
+  $('#rdSave', d).onclick = () => {
+    const name = draft.name.trim().replace(/\s+/g, ''); if (!name) return;
+    commit(() => { r.name = name; r.desc = draft.desc; r.pairs = draft.src.flatMap(s => draft.tgt.map(t => ({ s, t }))); if (!r.pairs.length) S.rels = S.rels.filter(x => x !== r); });
+    closeDrawer();
+  };
+  $('#rdDel', d).onclick = () => { commit(() => { S.rels = S.rels.filter(x => x !== r); S.mappings.forEach(m => m.rels = m.rels.filter(x => x.rel !== id)); UI.sel = null; }); closeDrawer(); };
+}
+
+/* Rules */
+function openRules() {
+  const rows = S.classes.flatMap(c => c.attrs.filter(a => a.rule).map(a => `<tr><td>${esc(c.name)}.${esc(a.name)}</td><td>${a.type}</td><td>${RULES.find(r => r[0] === a.rule)[1]}</td></tr>`)).join('');
+  openDrawer(`<div class="dr-h"><h3>Rules</h3><button class="x" data-close aria-label="닫기">×</button></div><div class="dr-b">
+    <p class="note">속성의 Rule 열에서 지정한 제약이 여기에 모입니다. 게시하면 SHACL 제약으로 데이터 품질을 검사할 수 있습니다.</p>
+    <table class="tbl"><thead><tr><th>속성</th><th>타입</th><th>규칙</th></tr></thead><tbody>${rows || '<tr><td colspan="3" style="color:var(--muted)">정의된 규칙이 없습니다. Class Detail → Attributes의 Rule 열에서 추가하세요.</td></tr>'}</tbody></table></div>`);
+}
+
+/* ================= 모달 ================= */
+function openModal(html, cls = '') {
+  const L = $('#modalLayer'); L.innerHTML = `<div class="mod ${cls}">${html}</div>`; L.classList.add('on');
+  $$('[data-mclose]', L).forEach(b => b.onclick = closeModal);
+  return $('.mod', L);
+}
+function closeModal() { $('#modalLayer').classList.remove('on'); $('#modalLayer').innerHTML = ''; }
+$('#modalLayer').addEventListener('pointerdown', e => { if (e.target.id === 'modalLayer' && !Director.running) closeModal(); });
+
+/* ================= 데이터 추가 ================= */
+const SOURCES = [['Amazon Athena', '#8C4FFF'], ['Amazon Redshift', '#2E73B8'], ['Databricks Spark SQL', '#E8483A'], ['Microsoft SQL Server', '#A32B2B'], ['MySQL and MariaDB', '#3F7CAC'], ['PostgreSQL', '#336791'], ['Simba Spark SQL', '#E25A1C'], ['Snowflake', '#29B5E8'], ['Synapse Dedicated', '#0F8A9D'], ['Synapse Serverless', '#0F8A9D'], ['Trino', '#DD00A1']];
+let staged = [];
+function openAddData() {
+  const d = openDrawer(`<div class="dr-h"><h3>Add data</h3><button class="x" data-close aria-label="닫기">×</button></div><div class="dr-b">
+    <div class="dz" id="dz"><div class="up">${ICON.up}</div>Click or drag CSV files here to upload.<div style="margin-top:12px"><button class="btn" style="background:#fff;border-color:var(--line)" id="chooseFiles">Choose files</button></div>
+      <span class="small">발표용 샘플 폴더가 열립니다. <button id="realPick">내 컴퓨터의 CSV 사용</button></span></div>
+    <div class="dsec">Connect a data source</div>
+    <div class="srcgrid">${SOURCES.map(s => `<button data-src="${esc(s[0])}"><span class="ic" style="background:${s[1]}">${s[0].split(' ').map(w => w[0]).join('').slice(0, 2)}</span>${esc(s[0])}</button>`).join('')}</div>
+    <div class="dsec" style="text-align:center;color:var(--ink-2);font-size:12px">Sample datasets</div>
+    <div class="srcgrid" style="grid-template-columns:1fr"><button id="sampleSet"><span class="ic" style="background:#3B4250">🎬</span>MOVA 영화 원천 데이터 (CSV 4종)</button></div>
+  </div>`, { dim: true });
+  $('#chooseFiles', d).onclick = openFilePicker;
+  $('#realPick', d).onclick = () => $('#realFile').click();
+  $('#sampleSet', d).onclick = () => { staged = ['MOVIE.csv', 'MOVIE_CREDIT.csv', 'PERSON.csv', 'CREDIT_TYPE_CODE.csv'].map(n => DATA.files.find(f => f.name === n)).map(f => ({ name: f.name.replace('.csv', ''), cols: f.cols, rows: f.rows })); openUpload(); };
+  $$('[data-src]', d).forEach(b => b.onclick = () => toast(`${esc(b.dataset.src)} 연결은 이 시뮬레이터에서 동작만 보여 줍니다. 실제 Stardog Cloud에서는 접속 정보를 입력해 가상 그래프로 연결합니다.`, 4200));
+  const dz = $('#dz', d);
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('over'); };
+  dz.ondragleave = () => dz.classList.remove('over');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('over'); readRealFiles(e.dataTransfer.files); };
+}
+function parseCSV(text) {
+  const rows = []; let row = [], f = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += ch; continue; }
+    if (ch === '"') q = true; else if (ch === ',') { row.push(f); f = ''; } else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(f); rows.push(row); row = []; f = ''; } else f += ch;
+  }
+  if (f || row.length) { row.push(f); rows.push(row); }
+  const head = (rows.shift() || []).map(h => h.replace(/^\uFEFF/, '').trim());
+  return { cols: head, rows: rows.filter(r => r.some(x => x !== '')).map(r => Object.fromEntries(head.map((h, i) => [h, r[i] ?? '']))) };
+}
+function readRealFiles(list) {
+  const fs = [...list].filter(f => /\.csv$/i.test(f.name)); if (!fs.length) return toast('CSV 파일만 올릴 수 있습니다.');
+  Promise.all(fs.map(f => f.text().then(t => ({ name: f.name.replace(/\.csv$/i, ''), ...parseCSV(t) })))).then(arr => { staged = staged.concat(arr.filter(a => a.cols.length)); openUpload(); });
+}
+$('#realFile').onchange = e => { readRealFiles(e.target.files); e.target.value = ''; };
+
+function openFilePicker() {
+  const sel = new Set(); let last = -1;
+  const m = openModal(`<div class="fp-top"><span style="display:flex;gap:6px"><i style="width:11px;height:11px;border-radius:50%;background:#FF5F57;display:block"></i><i style="width:11px;height:11px;border-radius:50%;background:#FEBC2E;display:block"></i><i style="width:11px;height:11px;border-radius:50%;background:#28C840;display:block"></i></span>
+      <span class="path">📁 movie_raw_db_100_films</span><span style="width:40px"></span></div>
+    <div class="fp-body"><div class="fp-side"><small>즐겨찾기</small><div>최근 항목</div><div>데스크탑</div><div>문서</div><div class="on">다운로드</div><small>위치</small><div>iCloud Drive</div></div>
+    <div class="fp-list"><table><thead><tr><th>이름</th><th>크기</th><th>종류</th><th>추가된 날짜</th></tr></thead><tbody>
+    ${DATA.files.map((f, i) => `<tr class="${f.disabled ? 'dis' : 'f'}" data-fi="${i}" data-fname="${f.name}"><td><span class="ficon"></span>${f.name}</td><td>${f.size}</td><td>${f.kind}</td><td>2026년 9월 20일 오후 8:24</td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div class="fp-foot"><button class="btn" style="background:#fff;border-color:#DADADD" data-mclose>옵션 보기</button><span style="display:flex;gap:8px"><button class="btn" style="background:#fff;border-color:#DADADD" data-mclose>취소</button><button class="btn" id="fpOpen" style="background:#2F6FE0;color:#fff" disabled>열기</button></span></div>`, 'fp');
+  const rows = $$('tr.f', m), open = $('#fpOpen', m);
+  const paint = () => { rows.forEach(r => r.classList.toggle('on', sel.has(+r.dataset.fi))); open.disabled = !sel.size; };
+  rows.forEach(r => {
+    r.onclick = e => {
+      const i = +r.dataset.fi;
+      if (e.shiftKey && last >= 0) { const [a, b] = [Math.min(last, i), Math.max(last, i)]; rows.forEach(x => { const j = +x.dataset.fi; if (j >= a && j <= b) sel.add(j); }); }
+      else if (e.metaKey || e.ctrlKey || e.toggle) { sel.has(i) ? sel.delete(i) : sel.add(i); }
+      else { sel.clear(); sel.add(i); }
+      last = i; paint();
+    };
+    r.ondblclick = () => { sel.clear(); sel.add(+r.dataset.fi); open.click(); };
+  });
+  open.onclick = () => {
+    staged = staged.concat([...sel].map(i => DATA.files[i]).filter(f => !staged.some(s => s.name + '.csv' === f.name)).map(f => ({ name: f.name.replace('.csv', ''), cols: f.cols, rows: f.rows })));
+    closeModal(); openUpload();
+  };
+}
+function openUpload() {
+  const d = openDrawer(`<div class="dr-h"><button class="iconbtn" id="upBack" aria-label="뒤로">${ICON.back}</button><h3>Upload data</h3><button class="x" data-close aria-label="닫기">×</button></div><div class="dr-b">
+    <div class="dz"><div class="up">${ICON.up}</div>Click or drag CSV files here to upload.<div style="margin-top:12px"><button class="btn" style="background:#fff;border-color:var(--line)" id="chooseMore">Choose files</button></div></div>
+    <div id="upList"></div></div>
+    <div class="dr-f"><button class="btn plain" id="upCancel">Cancel</button><span class="sp"></span><button class="btn green" id="upCreate">Create</button><button class="btn green" id="upMap">Create &amp; Map</button></div>`, { dim: true });
+  const draw = () => {
+    $('#upList', d).innerHTML = staged.map((f, i) => `<div class="fcard" data-up="${esc(f.name)}"><div class="fh">${ICON.file}${esc(f.name)}<span class="acts">${i ? `<button title="정보">${ICON.info}</button>` : ''}<button data-pv="${i}" title="미리보기">${ICON.eye}</button><button data-rm="${i}" title="제거">${ICON.x}</button></span></div><p>${esc(describeRes(f))}</p></div>`).join('') || '<p class="note" style="margin-top:12px">선택한 파일이 없습니다.</p>';
+    $$('[data-rm]', d).forEach(b => b.onclick = () => { staged.splice(+b.dataset.rm, 1); draw(); });
+    $$('[data-pv]', d).forEach(b => b.onclick = () => openPreview(null, staged[+b.dataset.pv]));
+  };
+  draw();
+  $('#chooseMore', d).onclick = openFilePicker;
+  $('#upBack', d).onclick = openAddData;
+  $('#upCancel', d).onclick = () => { staged = []; closeDrawer(); };
+  const create = map => {
+    if (!staged.length) return toast('업로드할 파일을 고르세요.');
+    let made = [];
+    commit(() => { staged.forEach(f => { if (resByName(f.name)) return; const r = makeResource(f.name, f.cols, f.rows); S.resources.push(r); made.push(r); }); });
+    staged = []; closeDrawer(); fitView();
+    toast(`리소스 ${made.length}개를 만들었습니다.`);
+    if (map && made.length) {
+      commit(() => {
+        const ids = made.map(r => r.id);
+        ids.forEach(rid => { const r = res(rid); const guess = clsByName(pascal(r.name)) || (r.name === 'MOVIE_CREDIT' && clsByName('Credit')) || (r.name === 'CREDIT_TYPE_CODE' && clsByName('CreditType')); createMappings([rid], guess ? [guess.id] : []); });
+      });
+      openVoice(true); fitView();
+    }
+  };
+  $('#upCreate', d).onclick = () => create(false);
+  $('#upMap', d).onclick = () => create(true);
+}
+
+/* 리소스 상세 */
+function openResourceDetail(id) {
+  const r = res(id); if (!r) return;
+  const d = openDrawer(`<div class="dr-h"><h3>Resource Detail</h3><button class="x" data-close aria-label="닫기">×</button></div><div class="dr-b">
+    <div style="display:flex;justify-content:space-between;background:var(--field-2);border-radius:7px;padding:10px 12px;font-size:12px"><div><b>${esc(r.name)}</b><div style="color:var(--ink-2)">Type: CSV</div></div><div style="text-align:right;color:var(--ink-2)">Update date<div>${new Date(r.updated).toLocaleString('ko-KR')}</div></div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 6px"><b style="font-weight:500">Fields</b><button class="btn ghost" id="rdPv">${ICON.eye} View preview</button></div>
+    <table class="tbl" style="margin-top:0"><thead><tr><th>Field Name</th><th>추정 타입</th></tr></thead><tbody>${r.cols.map(c => `<tr><td>${esc(c)}</td><td style="color:var(--ink-2)">${inferType(r.rows.slice(0, 40).map(x => x[c]))}</td></tr>`).join('')}</tbody></table>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 6px"><b style="font-weight:500">Mapping</b><button class="btn ghost" id="rdNew">New Mapping</button></div>
+    <table class="tbl" style="margin-top:0"><thead><tr><th>Mapping Name</th><th>Target</th></tr></thead><tbody>${S.mappings.filter(m => m.res === id).map(m => `<tr><td><span class="lnk" data-gomap="${m.id}">${esc(r.name)} - ${esc(cls(m.cls)?.name)}</span></td><td>${esc(cls(m.cls)?.name)}</td></tr>`).join('') || '<tr><td colspan="2" style="color:var(--muted)">매핑이 없습니다.</td></tr>'}</tbody></table>
+  </div><div class="dr-f" style="justify-content:flex-start"><button class="btn red" id="rdDelR">Delete</button></div>`);
+  $('#rdPv', d).onclick = () => openPreview(id);
+  $('#rdNew', d).onclick = () => openNewMapping([id]);
+  $$('[data-gomap]', d).forEach(s => s.onclick = () => { closeDrawer(); UI.mapSel = s.dataset.gomap; switchTab('mapping'); });
+  $('#rdDelR', d).onclick = () => { commit(() => { deleteResource(id); UI.sel = null; }); closeDrawer(); };
+}
+
+/* 리소스 미리보기 */
+function openPreview(id, raw) {
+  const r = id ? res(id) : raw; if (!r) return;
+  const p = r.props || { sep: ',', quote: '"', esc: '"', header: true, skip: true };
+  const stat = c => { const v = r.rows.map(x => x[c]); const d = new Set(v.filter(x => x !== '')).size; return `${(d / Math.max(1, v.length) * 100).toFixed(d === v.length ? 0 : 2)}% distinct<br>${v.length} records`; };
+  const m = openModal(`<div class="mod-h light"><h3 style="font-weight:500">Resource Preview</h3><button class="x" data-mclose aria-label="닫기">×</button></div>
+    <div class="pv"><div class="pv-l"><label class="fl">File</label><div style="display:flex;gap:6px;margin-bottom:16px"><input class="fi" style="margin:0;background:#fff;border-color:var(--line)" value="${esc(r.file || r.name + '.csv')}" readonly><button class="btn ghost" id="pvRep">Replace</button></div>
+      <div style="font-family:Georgia,serif;font-size:14px;margin-bottom:12px">⌃ Resource Properties</div>
+      <label class="fl">Separator character</label><input class="fi" style="background:#fff;border-color:var(--line)" value="${esc(p.sep)}" data-pp="sep">
+      <label class="fl">Quote character</label><input class="fi" style="background:#fff;border-color:var(--line)" value="${esc(p.quote)}" data-pp="quote">
+      <label class="fl">Escape character</label><input class="fi" style="background:#fff;border-color:var(--line)" value="${esc(p.esc)}" data-pp="esc">
+      <div class="tog${p.header ? ' on' : ''}" data-tg="header"><i></i>Has header</div><div class="tog${p.skip ? ' on' : ''}" data-tg="skip"><i></i>Skip empty values</div>
+      <div style="margin-top:auto;display:flex;justify-content:space-between;padding-top:16px"><button class="btn plain" data-mclose>Revert</button><button class="btn" id="pvSave">Save</button></div></div>
+    <div class="pv-r"><div class="meta"><b style="color:var(--ink)">${esc(r.name)}</b><span>Last updated: ${new Date().toLocaleDateString('ko-KR')} &nbsp;<span class="chip">May not reflect full data</span></span></div>
+      <div class="pv-tbl"><table><thead><tr>${r.cols.map(c => `<th>${esc(c)}<small>${stat(c)}</small></th>`).join('')}</tr></thead><tbody>${r.rows.slice(0, 60).map(row => `<tr>${r.cols.map(c => `<td>${esc(row[c])}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div></div>`, 'wide');
+  $$('[data-tg]', m).forEach(t => t.onclick = () => t.classList.toggle('on'));
+  $('#pvRep', m).onclick = () => toast('Replace로 같은 리소스에 새 CSV를 덮어쓸 수 있습니다.');
+  $('#pvSave', m).onclick = () => { if (id) commit(() => { $$('[data-pp]', m).forEach(i => r.props[i.dataset.pp] = i.value); $$('[data-tg]', m).forEach(t => r.props[t.dataset.tg] = t.classList.contains('on')); }); closeModal(); };
+}
+
+/* New Mapping */
+function openNewMapping(preRes = []) {
+  if (!S.resources.length) return toast('먼저 Resources에 데이터를 추가하세요.');
+  closeDrawer();
+  const m = openModal(`<div class="mod-h"><h3>New Mapping</h3><button class="x" data-mclose aria-label="닫기">×</button></div><div class="mod-b">
+    <h4>Select resources to map from</h4><div id="nmRes" style="margin-bottom:18px"></div>
+    <h4>Select classes to map to</h4><p class="sub">Leave blank to have Voicebox generate data model concepts.</p><div id="nmCls"></div></div>
+    <div class="mod-f"><button class="btn" data-mclose>Cancel</button><button class="btn green" id="nmCreate">Create</button></div>`);
+  let rs = [...preRes], cs = [];
+  $('#nmRes', m).appendChild(combo({ name: 'nmRes', multi: true, chips: true, value: rs, placeholder: 'Select resource(s)...', filterPh: 'Search', options: () => S.resources.map(r => ({ v: r.id, l: r.name })), onPick: v => rs = v }));
+  $('#nmCls', m).appendChild(combo({ name: 'nmCls', multi: true, chips: true, value: cs, placeholder: 'Select class(es)...', filterPh: 'Search', options: () => S.classes.map(c => ({ v: c.id, l: c.name })), onPick: v => cs = v }));
+  $('#nmCreate', m).onclick = async () => {
+    if (!rs.length) return toast('리소스를 하나 이상 고르세요.');
+    const b = $('#nmCreate', m); b.innerHTML = '<span class="spin"></span>Create'; b.disabled = true;
+    await sleep(Director.running ? 700 / Director.speed : 900);
+    commit(() => createMappings(rs, cs));
+    closeModal(); openVoice(true); fitView();
+  };
+}
+
+/* ================= Mapping 탭 ================= */
+function renderMapView() {
+  const v = $('#mapView'); const m = S.mappings.find(x => x.id === UI.mapSel);
+  if (!m) { v.innerHTML = `<div class="mv-empty"><div style="text-align:center">No mapping selected<div style="color:var(--muted);font-size:12px;margin-top:6px">왼쪽 Mappings 목록에서 매핑을 고르세요.</div></div></div>`; return; }
+  const r = res(m.res), c = cls(m.cls); if (!r || !c) { UI.mapSel = null; return renderMapView(); }
+  const first = r.rows[0] || {};
+  const colOpts = r.cols.map(x => ({ v: x, l: x }));
+  const outPairs = []; S.rels.forEach(rel => rel.pairs.filter(p => p.s === c.id).forEach(p => outPairs.push({ rel, t: cls(p.t) })));
+  v.innerHTML = `<div class="mv"><div class="mv-grid">
+    <div class="hd hdrow lc"><div><div>${esc(r.name)} - ${esc(c.name)}</div><small>${esc(c.name)}</small></div><span style="display:flex;gap:6px"><button class="btn ghost" id="mvSms" style="background:#fff">${UI.showSms ? '표 보기' : 'SMS 코드 보기'}</button><button class="btn" style="background:#fff;border-color:var(--line)" id="mvEdit">Edit Attributes</button></span></div>
+    <div class="hd r hdrow"><div><div>${esc(r.name)}</div><small>Type: CSV</small></div><button class="btn" style="background:#fff;border-color:var(--line)" id="mvSuggest">✦ Suggest Mapping</button></div>
+    ${UI.showSms ? `<div style="grid-column:1/-1;border-right:0;padding:16px"><pre class="code">${genSms(m)}</pre></div>` : `
+    <div class="lc">Primary Identifier <span style="color:var(--muted);font-size:11px">개체 IRI를 만드는 열</span></div><div><div id="mvPrim"></div><div class="pv2">Preview: ${esc(m.primary.map(p => first[p]).join('_'))}</div></div>
+    <div class="lc lab"><input type="checkbox" id="mvLabOn" ${m.labelOn ? 'checked' : ''}><label for="mvLabOn">Label</label> <span style="color:var(--muted);font-size:11px">화면에 보일 이름</span></div><div><div id="mvLab"></div></div>
+    <div class="sec2">⌄ Relationships</div>
+    ${outPairs.map((op, i) => { const cur = m.rels.find(x => x.rel === op.rel.id && x.target === op.t.id); return `<div class="rname lc">${ICON.rel}${esc(op.rel.name)}</div><div><div class="pair"><div><label>Target Class</label><div class="combo-btn" style="background:var(--field)">${esc(op.t.name)}</div></div><div><label>Target Identifier</label><div id="mvRel${i}"></div><div class="pv2">Preview: ${cur ? esc(first[cur.col]) : '—'}</div></div></div></div>`; }).join('') || '<div style="grid-column:1/-1;color:var(--muted)">이 클래스에서 나가는 관계가 없습니다.</div>'}
+    <div class="sec2">⌄ Attributes</div>
+    ${c.attrs.map((a, i) => { const cur = m.attrs.find(x => x.attr === a.id); return `<div class="aname lc"><span class="sq"></span><span class="nm">${esc(a.name)}</span><span class="ty">${a.type}</span></div><div><div id="mvAt${i}"></div><div class="pv2">Preview: ${cur ? esc(first[cur.col]) || '(빈 값)' : '—'}</div></div>`; }).join('') || '<div style="grid-column:1/-1;color:var(--muted)">속성이 없습니다. Edit Attributes로 추가하세요.</div>'}`}
+  </div></div>`;
+  $('#mvSms').onclick = () => { UI.showSms = !UI.showSms; renderMapView(); };
+  $('#mvEdit').onclick = () => openClassDetail(c.id, 'Attributes');
+  $('#mvSuggest').onclick = () => { commit(() => { beginPending(); const s = suggestMapping(r, c); Object.assign(m, { primary: s.primary, label: s.label, rels: s.rels, attrs: s.attrs, pending: true }); S.voiceLog.push({ who: 'vb', text: 'Added suggested mappings.' }); }); toast('Voicebox가 매핑을 다시 제안했습니다.'); };
+  if (UI.showSms) return;
+  const upd = fn => commit(() => { fn(); });
+  $('#mvPrim').appendChild(combo({ name: 'prim', multi: true, chips: true, value: m.primary, placeholder: '열 선택', filterPh: 'Search', options: colOpts, onPick: v => upd(() => m.primary = v.length ? v : m.primary) }));
+  $('#mvLab').appendChild(combo({ name: 'label', value: m.label, options: colOpts, filterPh: 'Search', onPick: v => upd(() => m.label = v) }));
+  $('#mvLabOn').onchange = e => upd(() => m.labelOn = e.target.checked);
+  outPairs.forEach((op, i) => { const cur = m.rels.find(x => x.rel === op.rel.id && x.target === op.t.id);
+    $('#mvRel' + i).appendChild(combo({ name: 'rel' + i, value: cur?.col || '', placeholder: '열 선택', options: colOpts, filterPh: 'Search', onPick: v => upd(() => { m.rels = m.rels.filter(x => !(x.rel === op.rel.id && x.target === op.t.id)); m.rels.push({ rel: op.rel.id, target: op.t.id, col: v }); }) })); });
+  c.attrs.forEach((a, i) => { const cur = m.attrs.find(x => x.attr === a.id);
+    $('#mvAt' + i).appendChild(combo({ name: 'at' + i, value: cur?.col || '', placeholder: '열 선택', options: colOpts, filterPh: 'Search', onPick: v => upd(() => { m.attrs = m.attrs.filter(x => x.attr !== a.id); m.attrs.push({ attr: a.id, col: v }); }) })); });
+}
+
+/* ================= 게시 & 탐색 ================= */
+function openPublish() {
+  if (!S.classes.length) return toast('게시할 모델이 없습니다.');
+  const pend = !!S.pending;
+  const m = openModal(`<div class="mod-h"><h3>Publish</h3><button class="x" data-mclose aria-label="닫기">×</button></div><div class="mod-b" id="pbBody">
+    ${pend ? `<p class="note" style="background:#FFF3D6;color:#7A5300">아직 승인하지 않은 제안 매핑 ${pendingCount()}개가 있습니다. 게시 전에 승인됩니다.</p><br>` : ''}
+    <h4>Database</h4><p class="sub">모델과 데이터를 넣을 데이터베이스</p><input class="fi" id="pbDb" value="${esc(S.project.toLowerCase())}_kg">
+    <h4>Model</h4><p class="sub">Named graph: tag:stardog:designer:${esc(S.project)}:model</p><input class="fi" id="pbModel" value="${esc(S.project)}">
+    <div class="tog on" id="pbData"><i></i>업로드한 CSV 데이터를 함께 적재</div>
+  </div><div class="mod-f"><button class="btn" data-mclose>Cancel</button><button class="btn green" id="pbGo">Publish</button></div>`);
+  $('#pbData', m).onclick = e => e.currentTarget.classList.toggle('on');
+  $('#pbGo', m).onclick = async () => {
+    const db = $('#pbDb', m).value.trim() || 'mova_kg', withData = $('#pbData', m).classList.contains('on');
+    if (S.pending) { commit(acceptChanges); }
+    const steps = ['모델 저장 (클래스·관계·속성)', '매핑 검증', withData ? '데이터 적재 (CSV → 그래프)' : '가상 그래프 등록', 'Explorer 색인 생성'];
+    $('#pbBody', m).innerHTML = `<h4>${esc(db)} 에 게시하는 중</h4><ul class="pubsteps">${steps.map(s => `<li><i></i>${s}</li>`).join('')}</ul>`;
+    $('.mod-f', m).innerHTML = '';
+    const lis = $$('.pubsteps li', m);
+    for (const li of lis) { li.className = 'run'; await sleep(Director.running ? 450 / Director.speed : 650); li.className = 'ok'; }
+    const inst = buildInstances(); let triples = 0;
+    inst.nodes.forEach(n => triples += 2 + Object.keys(n.props).length); triples += inst.edges.length;
+    S.published = { db, at: Date.now() }; S.flags.published = true; saving(); renderAll();
+    $('#pbBody', m).innerHTML = `<h4>게시 완료</h4><p class="sub">${esc(db)} 데이터베이스에서 바로 질의하고 탐색할 수 있습니다.</p>
+      <div class="stats"><div><b>${S.classes.length}</b><span>클래스</span></div><div><b>${inst.nodes.size}</b><span>개체 (인스턴스)</span></div><div><b>${triples.toLocaleString()}</b><span>트리플 (추정)</span></div></div>`;
+    $('.mod-f', m).innerHTML = `<button class="btn" data-mclose>닫기</button><button class="btn dark" id="pbEx">Explorer에서 보기</button>`;
+    $$('[data-mclose]', m).forEach(b => b.onclick = closeModal);
+    $('#pbEx', m).onclick = () => openExplorer();
+  };
+}
+function openExplorer(focusLabel) {
+  const inst = buildInstances();
+  if (!inst.nodes.size) { toast('승인된 매핑이 없어 탐색할 개체가 없습니다.'); return; }
+  const all = [...inst.nodes.values()];
+  let center = (focusLabel && all.find(n => n.label === focusLabel)) || all.find(n => n.label === '인터스텔라') || all[0];
+  const m = openModal(`<div class="mod-h"><h3>Explorer · ${esc(S.published?.db || S.project)}</h3><button class="x" data-mclose aria-label="닫기">×</button></div>
+    <div class="ex-top"><input id="exQ" placeholder="개체 검색 (예: 놀란, 기생충)" list="exList"><datalist id="exList">${all.slice(0, 400).map(n => `<option value="${esc(n.label)}">`).join('')}</datalist><span class="hint">노드를 누르면 그 개체를 중심으로 이동합니다.</span></div>
+    <div class="ex"><div class="ex-g"><svg id="exSvg"></svg></div><div class="ex-p" id="exP"></div></div>`, 'wide');
+  const adj = k => { const out = []; inst.edges.forEach(e => { if (e.s === k) out.push({ k: e.t, name: e.name, out: true }); if (e.t === k) out.push({ k: e.s, name: e.name, out: false }); }); return out; };
+  const draw = () => {
+    const sv = $('#exSvg', m); const W = sv.clientWidth || 800, H = sv.clientHeight || 520; const cx = W / 2, cy = H / 2;
+    const nb = adj(center.k); const ring = nb.slice(0, 12);
+    const r1 = Math.min(W, H) * .24, r2 = Math.min(W, H) * .43;
+    const P = new Map(); P.set(center.k, { x: cx, y: cy, r: 34, n: center });
+    const E = [];
+    ring.forEach((x, i) => {
+      const a = i / ring.length * Math.PI * 2 - Math.PI / 2;
+      if (!P.has(x.k)) P.set(x.k, { x: cx + Math.cos(a) * r1, y: cy + Math.sin(a) * r1, r: 22, n: inst.nodes.get(x.k), a });
+      E.push({ s: x.out ? center.k : x.k, t: x.out ? x.k : center.k, name: x.name });
+    });
+    if (ring.length <= 8) ring.forEach(x => { // 두 번째 고리: 이웃의 이웃
+      const base = P.get(x.k); const sub = adj(x.k).filter(y => y.k !== center.k).slice(0, 3);
+      sub.forEach((y, j) => {
+        if (!P.has(y.k)) { const a = base.a + (j - (sub.length - 1) / 2) * (Math.PI / Math.max(6, ring.length * 1.6)); P.set(y.k, { x: cx + Math.cos(a) * r2, y: cy + Math.sin(a) * r2, r: 18, n: inst.nodes.get(y.k) }); }
+        E.push({ s: y.out ? x.k : y.k, t: y.out ? y.k : x.k, name: y.name, far: true });
+      });
+    });
+    let h = '';
+    E.forEach(e => { const a = P.get(e.s), b = P.get(e.t); if (!a || !b) return;
+      const s = trimTo(a, b, a.r + 2), t = trimTo(b, a, b.r + 5);
+      h += `<g class="exe"${e.far ? ' style="opacity:.8"' : ''}><path d="M${s.x},${s.y} L${t.x},${t.y}" marker-end="url(#exArr)"/><text x="${(s.x + t.x) / 2}" y="${(s.y + t.y) / 2}">${esc(e.name)}</text></g>`; });
+    P.forEach((p, k) => { const lab = p.n.label.length > 16 ? p.n.label.slice(0, 15) + '…' : p.n.label;
+      h += `<g class="exn${k === center.k ? ' c' : ''}" data-k="${esc(k)}" transform="translate(${p.x},${p.y})"><circle r="${p.r}" fill="${p.n.cls.color}"/><text y="${p.r + 14}">${esc(lab)}</text></g>`; });
+    sv.innerHTML = `<defs><marker id="exArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,1 L10,5 L0,9 z" fill="#8A919E"/></marker></defs>` + h + (nb.length > 12 ? `<text x="12" y="${H - 12}" font-size="11" fill="#8A919E">연결 ${nb.length}개 중 12개 표시</text>` : '');
+    $$('.exn[data-k]', sv).forEach(g => g.onclick = () => { center = inst.nodes.get(g.dataset.k); draw(); });
+    $('#exP', m).innerHTML = `<span class="cls" style="background:${center.cls.color}">${esc(center.cls.name)}</span><h4>${esc(center.label)}</h4>
+      <dl><dt>IRI</dt><dd style="font-size:11px">${esc(iri(center.cls, center.id))}</dd>${Object.entries(center.props).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}
+      <dt>관계</dt><dd>${nb.map(x => { const n = inst.nodes.get(x.k); return `${x.out ? '' : '← '}${esc(x.name)} ${x.out ? '→ ' : ''}${esc(n.label)}`; }).slice(0, 30).join('<br>') || '—'}</dd></dl>`;
+  };
+  requestAnimationFrame(draw);
+  $('#exQ', m).onchange = e => { const f = all.find(n => n.label === e.target.value) || all.find(n => n.label.includes(e.target.value)); if (f) { center = f; draw(); } };
+}
+
+/* 기타 모달 */
+function openMore(x, y) {
+  showCtx(x - 160, y, [
+    { label: '모델 Turtle 보기', run: () => { const m = openModal(`<div class="mod-h"><h3>모델 (Turtle)</h3><button class="x" data-mclose aria-label="닫기">×</button></div><div class="mod-b"><pre class="code" id="ttl">${genTurtle()}</pre></div><div class="mod-f"><button class="btn" id="cp">복사</button><button class="btn dark" data-mclose>닫기</button></div>`, ''); m.style.width = 'min(760px,100%)'; $('#cp', m).onclick = () => { navigator.clipboard?.writeText($('#ttl', m).textContent).then(() => toast('복사했습니다.'), () => toast('복사할 수 없습니다.')); }; } },
+    { label: 'Explorer 열기', run: () => S.published ? openExplorer() : toast('먼저 Publish로 게시하세요.') },
+    { label: '프로젝트 초기화', danger: true, run: () => Guide.reset() }
+  ]);
+}
+
+/* ================= 이벤트 연결 ================= */
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act;
+  ({
+    'add-class': openCreateClass,
+    'add-rel': () => openCreateRel(UI.sel && UI.sel.type === 'class' ? UI.sel.id : null),
+    'layout': () => { commit(redrawLayout); fitView(); },
+    'delete': () => { const s = UI.sel; if (!s) return; commit(() => { if (s.type === 'class') deleteClass(s.id); else if (s.type === 'res') deleteResource(s.id); else if (s.type === 'rel') S.rels = S.rels.filter(r => r.id !== s.id); UI.sel = null; }); closeDrawer(); },
+    'undo': undo, 'redo': redo,
+    'add-data': openAddData,
+    'add-question': () => addQuestionUI(),
+    'new-mapping': () => openNewMapping([]),
+    'toggle-voice': () => openVoice(!$('#voice').classList.contains('on')),
+    'close-voice': () => openVoice(false),
+    'accept': () => { commit(acceptChanges); toast('제안을 승인했습니다.'); },
+    'discard': () => { commit(discardChanges, { noHistory: true }); toast('제안을 취소했습니다.'); },
+    'publish': openPublish,
+    'rules': openRules,
+    'csearch': () => { const i = $('#cSearch'); i.classList.toggle('on'); if (i.classList.contains('on')) i.focus(); else { i.value = ''; UI.search = ''; renderCanvas(); } },
+    'more': () => { const r = a.getBoundingClientRect(); openMore(r.right, r.bottom + 6); },
+    'back': () => toast('프로젝트 목록은 이 시뮬레이터에 포함되지 않습니다.'),
+    'model-plus': () => toast('한 프로젝트에 여러 모델을 둘 수 있습니다. 이 데모는 MOVA 모델 하나를 씁니다.'),
+    'vsend': sendVoice
+  }[act] || (() => {}))();
+});
+$$('.tabs-top button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+$$('.seg button').forEach(b => b.onclick = () => { UI.view = b.dataset.view; renderAll(); });
+$$('.sec-h').forEach(h => h.addEventListener('click', e => { if (e.target.closest('.add')) return; h.parentElement.classList.toggle('closed'); }));
+$('#sideSearch').oninput = renderSide;
+$('#cSearch').oninput = e => { UI.search = e.target.value; renderCanvas(); };
+$('#projName').onclick = () => {
+  const b = $('#projName'); const i = el(`<input class="fi" style="height:28px;width:140px;margin:0" value="${esc(S.project)}">`);
+  b.replaceWith(i); i.focus(); i.select();
+  const done = () => { const v = i.value.trim().replace(/[^\w가-힣-]/g, '') || S.project; i.replaceWith(b); if (v !== S.project) commit(() => S.project = v); };
+  i.onblur = done; i.onkeydown = e => { if (e.key === 'Enter') i.blur(); if (e.key === 'Escape') { i.value = S.project; i.blur(); } };
+};
+$('#rList').onclick = e => { const it = e.target.closest('[data-sres]'); if (!it) return; const r = res(it.dataset.sres); UI.sel = { type: 'res', id: r.id }; centerOn(r); renderAll(); resourceMenu(r.id); };
+$('#qList').onclick = e => { const b = e.target.closest('[data-delq]'); if (b) commit(() => S.questions.splice(+b.dataset.delq, 1)); };
+$('#mapTree').onclick = e => { const t = e.target.closest('[data-tmap]'); if (t) { UI.mapSel = t.dataset.tmap; UI.showSms = false; renderAll(); } };
+function addQuestionUI() {
+  const box = $('#qList'); if ($('.qinput', box)) return;
+  $('#secQ').classList.remove('closed');
+  const f = el(`<div class="qinput"><input placeholder="예: 같은 감독이 만든 다른 영화는?"><button class="btn green" style="height:30px">추가</button></div>`);
+  box.prepend(f); const i = $('input', f); i.focus();
+  const go = () => { const v = i.value.trim(); if (v) commit(() => S.questions.push(v)); else f.remove(); };
+  $('button', f).onclick = go; i.onkeydown = e => { if (e.key === 'Enter') go(); if (e.key === 'Escape') f.remove(); };
+}
+function centerOn(o) { const w = $('#canvasWrap'); UI.vx = w.clientWidth / 2 - o.x * UI.k; UI.vy = w.clientHeight / 2 - o.y * UI.k; applyView(); }
+
+/* Voicebox 대화 (규칙 기반) */
+$$('[data-vchip]').forEach(b => b.onclick = () => { $('#vInput').value = b.dataset.vchip; sendVoice(); });
+$('#vInput').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendVoice(); } };
+function sendVoice() {
+  const t = $('#vInput').value.trim(); if (!t) return; $('#vInput').value = '';
+  S.voiceLog.push({ who: 'me', text: t }); renderVoice();
+  setTimeout(() => {
+    let reply;
+    const mAdd = t.match(/([A-Za-z][\w]*)\s*클래스.*(추가|만들)/) || t.match(/add class\s+([A-Za-z]\w*)/i);
+    const mAsk = t.match(/([A-Za-z][\w]*)\s*클래스.*(속성|attribute)/i);
+    if (mAdd) {
+      const nm = mAdd[1][0].toUpperCase() + mAdd[1].slice(1);
+      if (clsByName(nm)) reply = `${nm} 클래스는 이미 있습니다.`;
+      else { commit(() => { beginPending(); addClass(nm, 'Voicebox가 제안함'); }); reply = `${nm} 클래스를 제안했습니다. 아래 배너에서 Accept Changes를 누르면 확정됩니다.`; }
+    } else if (mAsk) {
+      const c = clsByName(mAsk[1]);
+      reply = c ? (c.attrs.length ? `${c.name}의 속성: ${c.attrs.map(a => `${a.name}(${a.type})`).join(', ')}` : `${c.name}에는 아직 속성이 없습니다.`) : `${mAsk[1]} 클래스를 찾지 못했습니다.`;
+    } else if (/요약|summary/i.test(t)) {
+      reply = `클래스 ${S.classes.length}개, 관계 ${S.rels.length}개, 리소스 ${S.resources.length}개, 매핑 ${S.mappings.length}개가 있습니다.`;
+    } else reply = '이 시뮬레이터의 Voicebox는 "Genre 클래스를 추가해줘", "Credit 클래스에 어떤 속성이 있나요?", "모델 요약" 같은 요청을 이해합니다.';
+    S.voiceLog.push({ who: 'vb', text: reply }); renderVoice();
+  }, 500);
+}
+
+/* 키보드 */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (Director.running) { Director.stop(); return; }
+    if ($('#modalLayer').classList.contains('on')) { closeModal(); return; }
+    if ($('.ctx')) { closeCtx(); return; }
+    if ($('#drawer').classList.contains('on')) { closeDrawer(); return; }
+  }
+  const typing = e.target.closest('input,textarea,select,[contenteditable]');
+  if (typing || Director.running) return;
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if ((e.key === 'Delete' || e.key === 'Backspace') && UI.sel && !$('#drawer').classList.contains('on')) { $('[data-act=delete]').click(); return; }
+  if (e.key === 'g' || e.key === 'G') Guide.toggleMin();
+});
+addEventListener('resize', () => renderCanvas());
+
+/* ================= 자동 실행 (Director) ================= */
+const Director = {
+  running: false, speed: 1, aborted: false,
+  ghost: $('#ghost'), gx: innerWidth / 2, gy: innerHeight / 2,
+  check() { if (this.aborted) throw new Error('aborted'); },
+  async wait(ms) { await sleep(ms / this.speed); this.check(); },
+  async find(sel, timeout = 4000) {
+    const t0 = Date.now();
+    while (Date.now() - t0 < timeout) { this.check(); const n = typeof sel === 'function' ? sel() : $(sel); if (n && n.getClientRects().length) return n; await sleep(60); }
+    throw new Error('요소를 찾지 못했습니다: ' + sel);
+  },
+  async moveTo(x, y) { this.ghost.style.transform = `translate(${x - 3}px,${y - 2}px)`; this.gx = x; this.gy = y; await this.wait(520); },
+  async point(n) { const r = n.getBoundingClientRect(); await this.moveTo(r.left + Math.min(r.width / 2, 60), r.top + r.height / 2); },
+  ripple(x, y) { const d = el(`<div class="ripple" style="left:${x}px;top:${y}px"></div>`); document.body.appendChild(d); setTimeout(() => d.remove(), 520); },
+  async click(sel) { const n = await this.find(sel); n.scrollIntoView?.({ block: 'nearest' }); await this.point(n); this.ripple(this.gx, this.gy); await this.wait(140); n.click(); await this.wait(260); return n; },
+  async clickNode(obj, menuLabel) {
+    await this.wait(80); const p = screenOf(obj); await this.moveTo(p.x, p.y); this.ripple(p.x, p.y); await this.wait(140);
+    const isRes = !!obj.cols; UI.sel = { type: isRes ? 'res' : 'class', id: obj.id }; renderAll(); isRes ? resourceMenu(obj.id) : classMenu(obj.id);
+    await this.wait(380);
+    if (menuLabel) await this.click(() => $$('.ctx button').find(b => b.textContent.trim() === menuLabel));
+  },
+  async type(sel, text) {
+    const n = await this.find(sel); await this.point(n); this.ripple(this.gx, this.gy); n.focus(); n.value = '';
+    for (const ch of text) { n.value += ch; n.dispatchEvent(new Event('input', { bubbles: true })); await this.wait(55); }
+    n.dispatchEvent(new Event('change', { bubbles: true })); await this.wait(150);
+  },
+  async pick(comboName, label, create) {
+    const box = await this.find(() => $$(`[data-combo="${comboName}"]`).filter(b => b.getClientRects().length).pop());
+    await this.click(() => $('.combo-btn', box));
+    const inp = $('.combo-pop input', box);
+    for (const ch of label) { inp.value += ch; inp.dispatchEvent(new Event('input')); await this.wait(45); }
+    await this.wait(160);
+    await this.click(() => $$('.combo-pop li', box).find(li => li.dataset.new === label || li.textContent.trim() === label));
+  },
+  async run(fn, label) {
+    if (this.running) return;
+    this.running = true; this.aborted = false;
+    $('#shield').classList.add('on'); this.ghost.classList.add('on'); $('#runBadge').classList.add('on'); $('#runText').textContent = label + ' 자동 실행 중';
+    this.ghost.style.transform = `translate(${this.gx}px,${this.gy}px)`;
+    Guide.refresh();
+    try { await fn(this); }
+    catch (err) { if (err.message !== 'aborted') { console.error(err); toast('자동 실행을 멈췄습니다: ' + esc(err.message)); } else toast('자동 실행을 중지했습니다.'); }
+    finally { this.running = false; $('#shield').classList.remove('on'); this.ghost.classList.remove('on'); $('#runBadge').classList.remove('on'); closeCtx(); Guide.refresh(); }
+  },
+  stop() { this.aborted = true; }
+};
+
+/* ================= 설명 가이드 ================= */
+const CLASSES = [['Movie', '영화 작품'], ['Credit', '영화와 인물을 잇는 작품 참여(크레딧)'], ['CreditType', '감독·배우 같은 참여 역할'], ['Person', '감독·배우 인물']];
+const RELS = [['appearsIn', 'Credit', 'Movie'], ['involvesPerson', 'Credit', 'Person'], ['hasCreditType', 'Credit', 'CreditType']];
+const ATTRS = [['Movie', 'title', 'string'], ['Movie', 'releaseYear', 'gYear'], ['Credit', 'creditOrder', 'integer'], ['Credit', 'characterName', 'string']];
+const FILES = ['MOVIE', 'MOVIE_CREDIT', 'PERSON', 'CREDIT_TYPE_CODE'];
+const MAPS = [['MOVIE', 'Movie'], ['PERSON', 'Person'], ['MOVIE_CREDIT', 'Credit'], ['CREDIT_TYPE_CODE', 'CreditType']];
+const fileOf = n => DATA.files.find(f => f.name === n + '.csv');
+
+const STEPS = [
+  { t: '클래스 만들기', d: '온톨로지의 핵심 개념을 클래스로 정의합니다. Movie, Person과 함께, 영화와 인물을 잇는 중간 개체 Credit과 역할을 나타내는 CreditType을 만듭니다. 감독·배우를 Person의 종류가 아니라 Credit의 역할로 본 것이 이 모델의 핵심입니다.',
+    p: ['툴바 ● Add class', 'Class Name 입력', 'Create'],
+    done: () => CLASSES.every(c => clsByName(c[0])),
+    apply: () => CLASSES.forEach(([n, d], i) => { if (!clsByName(n)) { const c = addClass(n, d); const v = viewCenter(); c.x = v.x + 160; c.y = v.y - 210 + i * 105; } }),
+    async run(D) { for (const [n, d] of CLASSES) { if (clsByName(n)) continue; await D.click('[data-act=add-class]'); await D.type('#cc-name', n); await D.type('#cc-desc', d); await D.click('#ccCreate'); await D.wait(350); } } },
+  { t: '관계 만들기', d: 'Credit을 출발점으로 세 관계를 연결합니다. appearsIn은 영화, involvesPerson은 인물, hasCreditType은 역할을 가리킵니다. Source와 Target을 고르면 아래 표에 실제로 생길 연결이 미리 보입니다.',
+    p: ['툴바 Add relationship', 'Relationship Name', 'Source / Target 선택', 'Create'],
+    done: () => RELS.every(r => relByName(r[0])),
+    apply: () => RELS.forEach(([n, s, t]) => addRel(n, [{ s: clsByName(s).id, t: clsByName(t).id }])),
+    async run(D) { for (const [n, s, t] of RELS) { if (relByName(n)) continue; UI.sel = null; await D.click('[data-act=add-rel]'); await D.type('#cr-name', n); await D.pick('source', s); await D.pick('target', t); await D.wait(300); await D.click('#crCreate'); await D.wait(300); } } },
+  { t: '레이아웃 정리', d: 'Redraw Layout을 누르면 관계 방향에 맞춰 그래프가 다시 배치됩니다. Credit이 왼쪽 중심에 오고 Movie, Person, CreditType이 오른쪽으로 펼쳐져 구조가 한눈에 보입니다.',
+    p: ['툴바 Redraw Layout'],
+    done: () => !!S.flags.layout, apply: redrawLayout,
+    async run(D) { await D.click('[data-act=layout]'); await D.wait(500); } },
+  { t: '속성 추가', d: '클래스에 값을 붙입니다. Movie에는 title(string)과 releaseYear(gYear), Credit에는 creditOrder(integer)와 characterName(string)을 추가합니다. 노드 오른쪽 아래 숫자가 속성 개수이고, Rule 열에서 필수 여부 같은 제약도 걸 수 있습니다.',
+    p: ['노드 클릭', 'See details', 'Attributes 탭', '이름·Data Type', 'Add'],
+    done: () => ATTRS.every(([c, a]) => clsByName(c)?.attrs.some(x => x.name === a)),
+    apply: () => ATTRS.forEach(([c, a, t]) => addAttr(clsByName(c), a, t)),
+    async run(D) {
+      for (const cn of ['Movie', 'Credit']) {
+        const todo = ATTRS.filter(x => x[0] === cn && !clsByName(cn).attrs.some(a => a.name === x[1])); if (!todo.length) continue;
+        await D.clickNode(clsByName(cn), 'See details'); await D.click('[data-tab2=Attributes]');
+        for (const [, a, t] of todo) { await D.pick('attrName', a, true); await D.pick('attrType', t); await D.click('#aAdd'); await D.wait(250); }
+        await D.wait(500); await D.click('#drawer [data-close]');
+      }
+    } },
+  { t: '데이터 업로드', d: 'Resources의 +에서 원천 CSV 네 개(MOVIE, MOVIE_CREDIT, PERSON, CREDIT_TYPE_CODE)를 올립니다. Designer는 파일마다 열과 행 수를 분석해 보여 주고, 만든 리소스는 캔버스에 파일 아이콘으로 나타납니다.',
+    p: ['Resources +', 'Add data', 'Choose files', '파일 선택 → 열기', 'Create'],
+    done: () => FILES.every(f => resByName(f)),
+    apply: () => FILES.forEach(n => { if (!resByName(n)) { const f = fileOf(n); S.resources.push(makeResource(n, f.cols, f.rows)); } }),
+    async run(D) {
+      await D.click('[data-act=add-data]'); await D.click('#chooseFiles');
+      let first = true;
+      for (const n of FILES) { if (resByName(n)) continue; const row = await D.find(`tr[data-fname="${n}.csv"]`); await D.point(row); D.ripple(D.gx, D.gy); row.dispatchEvent(new MouseEvent('click', { ctrlKey: !first, bubbles: true })); first = false; await D.wait(220); }
+      await D.click('#fpOpen'); await D.wait(700); await D.click('#upCreate'); await D.wait(400);
+    } },
+  { t: '리소스 미리보기', d: 'MOVIE_CREDIT.csv를 열어 내용을 확인합니다. 열마다 고유값 비율과 레코드 수가 보이므로, credit_id처럼 100% 고유한 열은 식별자로, movie_id·person_id는 다른 클래스와의 연결 키로 쓸 수 있음을 알 수 있습니다.',
+    p: ['리소스 아이콘 클릭', 'View preview'],
+    done: () => STEPS[4].done(), apply: () => {},
+    async run(D) { await D.clickNode(resByName('MOVIE_CREDIT'), 'View preview'); await D.wait(3200); await D.click('#modalLayer [data-mclose]'); } },
+  { t: '매핑 만들기', d: '리소스를 클래스에 연결합니다. New Mapping에서 대상 클래스를 고르면 Voicebox가 식별자, 관계, 속성 매핑을 제안하고 캔버스에 파란 점선으로 미리 보여 줍니다. 클래스를 비워 두면 Voicebox가 새 개념을 만들어 줍니다.',
+    p: ['리소스 아이콘 클릭', 'New Mapping', 'Select classes', 'Create'],
+    done: () => MAPS.every(([r, c]) => S.mappings.some(m => res(m.res)?.name === r && cls(m.cls)?.name === c)),
+    apply: () => MAPS.forEach(([r, c]) => { if (!S.mappings.some(m => res(m.res)?.name === r && cls(m.cls)?.name === c)) createMappings([resByName(r).id], [clsByName(c).id]); }),
+    async run(D) {
+      for (const [r, c] of MAPS) { if (S.mappings.some(m => res(m.res)?.name === r && cls(m.cls)?.name === c)) continue;
+        await D.clickNode(resByName(r), 'New Mapping'); await D.pick('nmCls', c); await D.wait(250); await D.click('#nmCreate'); await D.wait(900); }
+    } },
+  { t: '매핑 확인', d: 'Mapping 탭에서 MOVIE_CREDIT - Credit 매핑을 엽니다. credit_id로 각 크레딧의 IRI를 만들고, movie_id·person_id·credit_type_cd로 Movie, Person, CreditType과 연결됩니다. SMS 코드 보기로 실제 매핑 문법도 확인할 수 있습니다.',
+    p: ['Mapping 탭', 'MOVIE_CREDIT - Credit', 'SMS 코드 보기'],
+    done: () => STEPS[6].done(), apply: () => {},
+    async run(D) {
+      await D.click('[data-tab=mapping]');
+      const m = S.mappings.find(x => res(x.res)?.name === 'MOVIE_CREDIT');
+      await D.click(`[data-tmap="${m.id}"]`); await D.wait(2600);
+      await D.click('#mvSms'); await D.wait(2600); await D.click('#mvSms'); await D.wait(400);
+      await D.click('[data-tab=model]');
+    } },
+  { t: '승인과 게시', d: 'Accept Changes로 제안을 확정하고 Publish로 데이터베이스에 게시합니다. 게시가 끝나면 Explorer에서 인터스텔라를 중심으로 감독, 배우, 역할이 연결된 지식그래프를 탐색할 수 있습니다.',
+    p: ['Accept Changes', 'Publish', 'Explorer에서 보기'],
+    done: () => !!S.published,
+    apply: () => { if (S.pending) acceptChanges(); S.published = { db: S.project.toLowerCase() + '_kg', at: Date.now() }; S.flags.published = true; },
+    async run(D) {
+      if (S.pending) await D.click('[data-act=accept]');
+      await D.wait(500); await D.click('[data-act=publish]'); await D.click('#pbGo');
+      await D.find('#pbEx', 10000); await D.wait(800); await D.click('#pbEx'); await D.wait(1500);
+    } }
+];
+
+const Guide = {
+  cur: 0,
+  init() {
+    $('#gSteps').innerHTML = STEPS.map((s, i) => `<button data-gs="${i}"><b>${i + 1}</b>${s.t}</button>`).join('');
+    $('#gSteps').onclick = e => { const b = e.target.closest('[data-gs]'); if (b && !Director.running) { this.cur = +b.dataset.gs; this.refresh(); } };
+    $('#guide').addEventListener('click', e => {
+      const b = e.target.closest('[data-g]'); if (!b) return;
+      ({ play: () => this.play(), jump: () => this.jump(this.cur), next: () => { if (this.cur < STEPS.length - 1) { this.cur++; this.refresh(); } }, reset: () => this.reset(), min: () => this.toggleMin() })[b.dataset.g]?.();
+    });
+    $('[data-g=stop]').onclick = () => Director.stop();
+    $$('[data-speed]').forEach(b => b.onclick = () => { Director.speed = +b.dataset.speed; $$('[data-speed]').forEach(x => x.classList.toggle('on', x === b)); });
+    this.refresh();
+  },
+  refresh() {
+    const s = STEPS[this.cur]; if (!s) return;
+    $$('#gSteps button').forEach((b, i) => { b.classList.toggle('on', i === this.cur); b.classList.toggle('done', i !== this.cur && STEPS[i].done()); });
+    $('#gTitle').textContent = `${this.cur + 1}. ${s.t}`; $('#gDesc').textContent = s.d;
+    $('#gPath').innerHTML = '메뉴 경로 ' + s.p.map(x => `<span>${esc(x)}</span>`).join(' › ');
+    const p = $('#gPlay'); p.disabled = Director.running; p.textContent = s.done() && this.cur !== 5 && this.cur !== 7 ? '↻ 다시 보기' : '▶ 자동 실행';
+  },
+  ensureBefore(k) { let changed = false; for (let i = 0; i < k; i++) if (!STEPS[i].done() || (i === 2 && !S.flags.layout)) { STEPS[i].apply(); changed = true; } return changed; },
+  async play() {
+    const k = this.cur, s = STEPS[k];
+    closeModal(); closeDrawer(); closeCtx();
+    if (UI.tab !== 'model') switchTab('model');
+    if (s.done() && ![2, 5, 7].includes(k)) { // 이미 완료된 단계는 직전 상태로 되돌린 뒤 다시 보여 준다
+      this.rebuild(k);
+    } else if (this.ensureBefore(k)) { commit(() => {}); }
+    await Director.run(s.run.bind(s), `${k + 1}단계`);
+    if (!Director.aborted && s.done() && k < STEPS.length - 1) { this.cur = k + 1; this.refresh(); }
+  },
+  rebuild(k) { // 빈 상태에서 0..k-1 단계를 적용
+    hist.past.push(snap()); hist.future = [];
+    Object.assign(S, { classes: [], rels: [], resources: [], mappings: [], pending: null, published: null, flags: {}, voiceLog: [] });
+    for (let i = 0; i < k; i++) STEPS[i].apply();
+    UI.sel = null; UI.mapSel = null; openVoice(S.mappings.length > 0); saving(); renderAll(); fitView();
+  },
+  jump(k) {
+    if (Director.running) return;
+    closeModal(); closeDrawer(); closeCtx(); switchTab('model');
+    this.rebuild(k + 1);
+    if (k === 7) { UI.mapSel = S.mappings.find(x => res(x.res)?.name === 'MOVIE_CREDIT')?.id; switchTab('mapping'); }
+    if (k === 8) openExplorer();
+    toast(`${k + 1}단계가 끝난 상태로 이동했습니다.`);
+  },
+  reset() {
+    if (Director.running) return;
+    closeModal(); closeDrawer(); closeCtx(); openVoice(false);
+    hist.past.push(snap()); hist.future = [];
+    Object.assign(S, { classes: [], rels: [], resources: [], mappings: [], questions: [], pending: null, published: null, flags: {}, voiceLog: [] });
+    UI.sel = null; UI.mapSel = null; UI.vx = 0; UI.vy = 0; UI.k = 1; this.cur = 0; switchTab('model'); saving(); renderAll();
+  },
+  toggleMin() { const g = $('#guide'); g.classList.toggle('min'); $('#gMin').textContent = g.classList.contains('min') ? '펼치기' : '접기'; setTimeout(renderCanvas, 0); }
+};
+window.Guide = Guide;
+
+/* 시작 */
+Guide.init();
+renderAll();
+
+</script>
+</body>
+</html>
